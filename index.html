@@ -400,14 +400,14 @@
                 Username: admin<br>
                 Password: admin123
             </div>
-            <form onsubmit="handleLogin(); return false;">
+            <form id="loginForm" onsubmit="handleLogin(event)">
 			<div class="form-group">
 				<label for="username">Username</label>
-				<input type="text" id="username" name="username" placeholder="Enter username (try: admin)" autocomplete="username">
+				<input type="text" id="username" name="username" placeholder="Enter username (try: admin)" autocomplete="username" required>
 			</div>
 			<div class="form-group">
 				<label for="password">Password</label>
-				<input type="password" id="password" name="password" placeholder="Enter password (try: admin123)" autocomplete="current-password">
+				<input type="password" id="password" name="password" placeholder="Enter password (try: admin123)" autocomplete="current-password" required>
 			</div>
 			<button type="submit" class="login-btn">Login</button>
 		</form>
@@ -745,54 +745,76 @@
             <div class="tab-content" id="settings">
                 <h2>System Settings & Administration</h2>
                 
+          
                 <!-- User Management Section -->
-                <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #3498db;">
-                    <h3 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center;">
-                        <span style="margin-right: 10px;">👥</span> User Management
-                    </h3>
-                    
-                    <!-- Add User Form -->
-                    <div class="form-grid" style="margin-bottom: 20px;">
-                        <div class="form-field">
-                            <label for="newUsername">New Username</label>
-                            <input type="text" id="newUsername" placeholder="Enter username">
-                        </div>
-                        <div class="form-field">
-                            <label for="newUserPassword">Password</label>
-                            <input type="password" id="newUserPassword" placeholder="Enter password">
-                        </div>
-                        <div class="form-field">
-                            <label for="newUserRole">User Role</label>
-                            <select id="newUserRole">
-                                <option value="user">User</option>
-                                <option value="admin">Administrator</option>
-                                <option value="agent">Agent</option>
-                                <option value="manager">Manager</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-success" onclick="addNewUser()">Add User</button>
-                        <button class="btn btn-warning" onclick="showUserList()">Manage Users</button>
-                    </div>
-                    
-                    <!-- User List Table -->
-                    <div id="userListContainer" style="margin-top: 20px; display: none;">
-                        <h4>Current Users:</h4>
-                        <table class="data-table" id="usersTable" style="margin-top: 10px;">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Role</th>
-                                    <th>Created Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+				<div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #3498db;">
+					<h3 style="color: #2c3e50; margin-bottom: 20px; display: flex; align-items: center;">
+						<span style="margin-right: 10px;">👥</span> User Management
+					</h3>
+					
+					<!-- Add User Form -->
+						<form onsubmit="addNewUser(event)">
+							<div class="form-grid" style="margin-bottom: 20px;">
+								<div class="form-field">
+									<label for="newUsername">New Username</label>
+									<input type="text" id="newUsername" placeholder="Enter username" required>
+								</div>
+								<div class="form-field">
+									<label for="newUserPassword">Password</label>
+									<input type="password" id="newUserPassword" placeholder="Enter password" required autocomplete="new-password">
+								</div>
+								<div class="form-field">
+									<label for="newUserRole">User Role</label>
+									<select id="newUserRole" required>
+										<option value="user">User</option>
+										<option value="admin">Administrator</option>
+										<option value="agent">Agent</option>
+										<option value="manager">Manager</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="btn-group">
+								<button type="submit" class="btn btn-success">Add User</button>
+								<button type="button" class="btn btn-warning" onclick="showUserList()">Manage Users</button>
+							</div>
+						</form>
+
+						<!-- Change Password Form -->
+						<form onsubmit="changePassword(event)" style="margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+							<h4>Change Password</h4>
+							<div style="margin-bottom: 15px;">
+								<label for="currentPassword">Current Password:</label>
+								<input type="password" id="currentPassword" autocomplete="current-password" required>
+							</div>
+							<div style="margin-bottom: 15px;">
+								<label for="newPassword">New Password:</label>
+								<input type="password" id="newPassword" autocomplete="new-password" required>
+							</div>
+							<div style="margin-bottom: 15px;">
+								<label for="confirmPassword">Confirm New Password:</label>
+								<input type="password" id="confirmPassword" autocomplete="new-password" required>
+							</div>
+							<button type="submit" class="btn btn-warning">Change Password</button>
+						</form>
+
+					
+					<!-- User List Table -->
+					<div id="userListContainer" style="margin-top: 20px; display: none;">
+						<h4>Current Users:</h4>
+						<table class="data-table" id="usersTable" style="margin-top: 10px;">
+							<thead>
+								<tr>
+									<th>Username</th>
+									<th>Role</th>
+									<th>Created Date</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
 
                 <!-- Backup & Restore Section -->
                 <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; margin-bottom: 25px; border-left: 4px solid #e74c3c;">
@@ -963,7 +985,9 @@
         const API_BASE_URL = '/api';
 
         // Authentication functions
-        async function handleLogin() {
+        async function handleLogin(event) {
+			if (event) event.preventDefault();
+			
 			const username = document.getElementById('username').value;
 			const password = document.getElementById('password').value;
 
@@ -1194,7 +1218,9 @@
 				console.error('Profit summary error:', error);
 			}
 }
-		async function addNewUser() {
+		async function addNewUser(event) {
+			if (event) event.preventDefault();
+			
 			try {
 				const username = document.getElementById('newUsername').value.trim();
 				const password = document.getElementById('newUserPassword').value;
@@ -1212,13 +1238,14 @@
 				
 				showNotification('Adding new user...', 'warning');
 				
-				const response = await apiCall('/api/users', {
+				const response = await apiCall('/users', {
 					method: 'POST',
 					body: JSON.stringify({ username, password, role })
 				});
 				
 				if (response.ok) {
 					showNotification('User added successfully!', 'success');
+					// Reset the form
 					document.getElementById('newUsername').value = '';
 					document.getElementById('newUserPassword').value = '';
 					document.getElementById('newUserRole').value = 'user';
@@ -1422,15 +1449,17 @@
 			}
 		}
 
-		async function changePassword() {
+		async function changePassword(event) {
+			if (event) event.preventDefault();
+			
 			try {
 				const username = localStorage.getItem('currentUser');
-				const currentPassword = prompt('Enter current password:');
-				const newPassword = prompt('Enter new password:');
-				const confirmPassword = prompt('Confirm new password:');
+				const currentPassword = document.getElementById('currentPassword').value;
+				const newPassword = document.getElementById('newPassword').value;
+				const confirmPassword = document.getElementById('confirmPassword').value;
 				
-				if (!currentPassword || !newPassword) {
-					showNotification('Password change cancelled', 'warning');
+				if (!currentPassword || !newPassword || !confirmPassword) {
+					showNotification('Please fill all password fields', 'error');
 					return;
 				}
 				
@@ -1446,13 +1475,17 @@
 				
 				showNotification('Changing password...', 'warning');
 				
-				const response = await apiCall('/api/users/change-password', {
+				const response = await apiCall('/users/change-password', {
 					method: 'PUT',
 					body: JSON.stringify({ username, currentPassword, newPassword })
 				});
 				
 				if (response.ok) {
 					showNotification('Password changed successfully!', 'success');
+					// Clear form
+					document.getElementById('currentPassword').value = '';
+					document.getElementById('newPassword').value = '';
+					document.getElementById('confirmPassword').value = '';
 					await logActivity('Security', 'Changed password');
 				} else {
 					const error = await response.json();
