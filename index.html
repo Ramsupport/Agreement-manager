@@ -1448,6 +1448,97 @@
 				showNotification('Error saving settings', 'error');
 			}
 		}
+		
+		
+
+		// Load agreements function
+		async function loadAgreements() {
+			try {
+				const response = await apiCall('/agreements');
+				const agreements = await response.json();
+				await displayAgreements(agreements);
+			} catch (error) {
+				console.error('Error loading agreements:', error);
+				showNotification('Error loading agreements', 'error');
+			}
+		}
+
+		// Save agreement function
+		async function saveAgreement() {
+			try {
+				const agreementData = collectAgreementData();
+				
+				if (!await validateAgreementData(agreementData)) {
+					return;
+				}
+
+				showNotification('Saving agreement...', 'warning');
+				
+				const response = await apiCall('/agreements', {
+					method: 'POST',
+					body: JSON.stringify(agreementData)
+				});
+
+				if (response.ok) {
+					showNotification('Agreement saved successfully!', 'success');
+					await clearForm();
+					await loadAgreements();
+					await logActivity('Agreement Created', `Added agreement for ${agreementData.ownerName}`);
+				} else {
+					const error = await response.json();
+					throw new Error(error.error || 'Failed to save agreement');
+				}
+			} catch (error) {
+				console.error('Save agreement error:', error);
+				showNotification(error.message || 'Error saving agreement', 'error');
+			}
+		}
+
+		// Collect agreement data from form
+		function collectAgreementData() {
+			return {
+				ownerName: document.getElementById('ownerName').value,
+				location: document.getElementById('location').value,
+				tokenNumber: document.getElementById('tokenNumber').value,
+				agreementDate: document.getElementById('agreementDate').value,
+				ownerContact: document.getElementById('ownerContact').value,
+				tenantContact: document.getElementById('tenantContact').value,
+				email: document.getElementById('email').value,
+				expiryDate: document.getElementById('expiryDate').value,
+				reminderDate: document.getElementById('reminderDate').value,
+				ccEmail: document.getElementById('ccEmail').value,
+				agentName: document.getElementById('agentName').value,
+				totalPayment: parseFloat(document.getElementById('totalPayment').value) || 0,
+				paymentOwner: parseFloat(document.getElementById('paymentOwner').value) || 0,
+				paymentTenant: parseFloat(document.getElementById('paymentTenant').value) || 0,
+				paymentReceivedDate1: document.getElementById('paymentReceivedDate1').value,
+				paymentReceivedDate2: document.getElementById('paymentReceivedDate2').value,
+				paymentDue: parseFloat(document.getElementById('paymentDue').value) || 0,
+				agreementStatus: document.getElementById('agreementStatus').value,
+				biometricDate: document.getElementById('biometricDate').value,
+				actualCost: parseFloat(document.getElementById('actualCost').value) || 0,
+				agentCommission: parseFloat(document.getElementById('agentCommission').value) || 0,
+				otherExpenses: parseFloat(document.getElementById('otherExpenses').value) || 0
+			};
+		}
+
+		// Modal functions
+		function closeEditModal() {
+			document.getElementById('editModal').style.display = 'none';
+		}
+
+		// Clear form function
+		async function clearForm() {
+			try {
+				document.querySelectorAll('#agreements input, #agreements select').forEach(element => {
+					if (element.id !== 'ccEmail' && !element.readOnly) {
+						element.value = '';
+					}
+				});
+			} catch (error) {
+				console.error('Error clearing form:', error);
+			}
+		}
 
 		async function changePassword(event) {
 			if (event) event.preventDefault();
