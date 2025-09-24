@@ -960,50 +960,53 @@
 
     <script>
         // Cloud-based API functions
-        const API_BASE_URL = window.location.origin + '/api';
+        const API_BASE_URL = '/api';
 
         // Authentication functions
         async function handleLogin() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const debugDiv = document.getElementById('loginDebug');
+			const username = document.getElementById('username').value;
+			const password = document.getElementById('password').value;
 
-            if (!username || !password) {
-                showNotification('Please enter both username and password', 'error');
-                return;
-            }
+			if (!username || !password) {
+				showNotification('Please enter both username and password', 'error');
+				return;
+			}
 
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password })
-                });
+			try {
+				console.log('Attempting login for user:', username);
+				
+				const response = await fetch('/api/auth/login', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ username, password })
+				});
 
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('currentUser', username);
-                    
-                    showNotification('Login successful!', 'success');
-                    document.getElementById('loginContainer').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'block';
-                    document.getElementById('currentUser').textContent = username;
-                    document.getElementById('currentUserInfo').textContent = username;
-                    document.getElementById('loginTime').textContent = new Date().toLocaleString();
-                    
-                    // Load initial data
-                    await loadAgreements();
-                } else {
-                    throw new Error('Invalid credentials');
-                }
-            } catch (error) {
-                showNotification('Login failed. Please check credentials.', 'error');
-                debugDiv.innerHTML = `Error: ${error.message}`;
-            }
-        }
+				const responseData = await response.json();
+				console.log('Login response:', responseData);
+
+				if (response.ok) {
+					localStorage.setItem('authToken', 'agreement-manager-token');
+					localStorage.setItem('currentUser', username);
+					
+					showNotification('Login successful!', 'success');
+					document.getElementById('loginContainer').style.display = 'none';
+					document.getElementById('mainApp').style.display = 'block';
+					document.getElementById('currentUser').textContent = username;
+					document.getElementById('currentUserInfo').textContent = username;
+					document.getElementById('loginTime').textContent = new Date().toLocaleString();
+					
+					// Load initial data
+					await loadAgreements();
+				} else {
+					throw new Error(responseData.error || 'Login failed');
+				}
+			} catch (error) {
+				console.error('Login error:', error);
+				showNotification(error.message || 'Login failed. Please check credentials.', 'error');
+			}
+		}
 
         function logout() {
             localStorage.removeItem('authToken');
@@ -1032,40 +1035,57 @@
 
         // API call helper function
         async function apiCall(endpoint, options = {}) {
-            const token = localStorage.getItem('authToken');
-            const defaultOptions = {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                }
-            };
+			const token = localStorage.getItem('authToken');
+			const defaultOptions = {
+				headers: {
+					'Authorization': `Bearer ${token}`,
+					'Content-Type': 'application/json',
+					...options.headers
+				}
+			};
 
-            try {
-                const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...defaultOptions, ...options });
-                if (response.status === 401) {
-                    logout();
-                    throw new Error('Authentication required');
-                }
-                return response;
-            } catch (error) {
-                showNotification('Network error. Please try again.', 'error');
-                throw error;
-            }
-        }
+			try {
+				console.log('API Call:', endpoint, options);
+				const response = await fetch(`/api${endpoint}`, { ...defaultOptions, ...options });
+				
+				if (response.status === 401) {
+					logout();
+					throw new Error('Authentication required');
+				}
+				
+				return response;
+			} catch (error) {
+				console.error('API call error:', error);
+				showNotification('Network error. Please try again.', 'error');
+				throw error;
+			}
+		}
+		
+		async function testConnection() {
+			try {
+				const response = await fetch('/api/test');
+				const data = await response.json();
+				console.log('Connection test:', data);
+				return true;
+			} catch (error) {
+				console.error('Connection test failed:', error);
+				return false;
+			}
+		}
 
-        // Agreement management functions
-        async function loadAgreements() {
-            try {
-                const response = await apiCall('/agreements');
-                const agreements = await response.json();
-                displayAgreements(agreements);
-            } catch (error) {
-                console.error('Error loading agreements:', error);
-            }
-        }
-
-        		
+		// Test on page load
+		document.addEventListener('DOMContentLoaded', function() {
+			testConnection().then(success => {
+				if (success) {
+					console.log('✅ Backend connection successful');
+				} else {
+					console.log('❌ Backend connection failed');
+					showNotification('Cannot connect to server. Please check if the backend is running.', 'error');
+				}
+				checkAuth();
+			});
+		});
+						
 		async function exportData() {
 			try {
 				showNotification('Exporting data...', 'warning');

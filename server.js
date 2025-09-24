@@ -237,7 +237,54 @@ app.post('/api/debug/reset-db', async (req, res) => {
   } catch (error) { res.status(500).json({ error: 'Internal server error' }); }
 });
 
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        message: 'API is working!', 
+        timestamp: new Date().toISOString(),
+        users: ['Try: admin/admin123', 'user/user123', 'agent/agent123', 'manager/manager123']
+    });
+})
+
 // ===== AUTHENTICATION ROUTES =====
+
+// ===== PASSWORD CHANGE ENDPOINT =====
+app.put('/api/users/change-password', async (req, res) => {
+  try {
+    const { username, currentPassword, newPassword } = req.body;
+    
+    if (!username || !currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'All password fields are required' });
+    }
+    
+    // Verify current password
+    const userResult = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = userResult.rows[0];
+    const currentHashedPassword = simpleHash(currentPassword);
+    
+    if (currentHashedPassword !== user.password) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+    
+    // Update password
+    const newHashedPassword = simpleHash(newPassword);
+    await pool.query('UPDATE users SET password = $1 WHERE username = $2', [newHashedPassword, username]);
+    
+    // Log activity
+    await pool.query('INSERT INTO activity_logs (username, action, details) VALUES ($1, $2, $3)', 
+      [username, 'Password Change', 'User changed password successfully']);
+    
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
