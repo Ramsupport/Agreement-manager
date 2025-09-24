@@ -25,98 +25,98 @@ const simpleHash = (password) => {
 
 // Initialize database tables for Agreement Manager
 // Add this to your server.js
-async function initializeDatabase() {
-  try {
-    console.log('Initializing Agreement Manager database...');
+	async function initializeDatabase() {
+	  try {
+		console.log('Initializing Agreement Manager database...');
 
-    // CORRECTED: All columns are now correctly defined inside the CREATE TABLE statement.
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS agreements (
-        id SERIAL PRIMARY KEY,
-        owner_name VARCHAR(255) NOT NULL,
-        location VARCHAR(255) NOT NULL,
-        token_number VARCHAR(100) UNIQUE NOT NULL,
-        agreement_date DATE,
-        owner_contact VARCHAR(20),
-        tenant_contact VARCHAR(20),
-        email VARCHAR(255),
-        expiry_date DATE,
-        reminder_date DATE,
-        cc_email VARCHAR(255) DEFAULT 'support@ramnathshetty.com',
-        agent_name VARCHAR(255),
-        total_payment DECIMAL(15,2) DEFAULT 0,
-        payment_owner DECIMAL(15,2) DEFAULT 0,
-        payment_tenant DECIMAL(15,2) DEFAULT 0,
-        payment_received_date1 DATE,
-        payment_received_date2 DATE,
-        payment_due DECIMAL(15,2) DEFAULT 0,
-        agreement_status VARCHAR(100) DEFAULT 'Drafted',
-        biometric_date DATE,
-        actual_cost DECIMAL(15,2) DEFAULT 0,
-        agent_commission DECIMAL(15,2) DEFAULT 0,
-        other_expenses DECIMAL(15,2) DEFAULT 0,
-        gross_profit DECIMAL(15,2) DEFAULT 0,
-        net_profit DECIMAL(15,2) DEFAULT 0,
-        profit_margin DECIMAL(5,2) DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
+		// Creates the 'agreements' table with all the correct columns
+		await pool.query(`
+		  CREATE TABLE IF NOT EXISTS agreements (
+			id SERIAL PRIMARY KEY,
+			owner_name VARCHAR(255) NOT NULL,
+			location VARCHAR(255) NOT NULL,
+			token_number VARCHAR(100) UNIQUE NOT NULL,
+			agreement_date DATE,
+			owner_contact VARCHAR(20),
+			tenant_contact VARCHAR(20),
+			email VARCHAR(255),
+			expiry_date DATE,
+			reminder_date DATE,
+			cc_email VARCHAR(255) DEFAULT 'support@ramnathshetty.com',
+			agent_name VARCHAR(255),
+			total_payment DECIMAL(15,2) DEFAULT 0,
+			payment_owner DECIMAL(15,2) DEFAULT 0,
+			payment_tenant DECIMAL(15,2) DEFAULT 0,
+			payment_received_date1 DATE,
+			payment_received_date2 DATE,
+			payment_due DECIMAL(15,2) DEFAULT 0,
+			agreement_status VARCHAR(100) DEFAULT 'Drafted',
+			biometric_date DATE,
+			actual_cost DECIMAL(15,2) DEFAULT 0,
+			agent_commission DECIMAL(15,2) DEFAULT 0,
+			other_expenses DECIMAL(15,2) DEFAULT 0,
+			gross_profit DECIMAL(15,2) DEFAULT 0,
+			net_profit DECIMAL(15,2) DEFAULT 0,
+			profit_margin DECIMAL(5,2) DEFAULT 0,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		  )`);
 
-    // CORRECTED: The stray 'fapp.get(...)' text has been removed.
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50) UNIQUE,
-        password VARCHAR(255),
-        role VARCHAR(20),
-        status VARCHAR(20) DEFAULT 'Active',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
+		// Creates the 'users' table (syntax corrected)
+		await pool.query(`
+		  CREATE TABLE IF NOT EXISTS users (
+			id SERIAL PRIMARY KEY,
+			username VARCHAR(50) UNIQUE,
+			password VARCHAR(255),
+			role VARCHAR(20),
+			status VARCHAR(20) DEFAULT 'Active',
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		  )`);
 
-    // The rest of the function remains the same...
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS activity_logs (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50),
-        action VARCHAR(255),
-        details TEXT,
-        ip_address VARCHAR(45),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
+		// Creates the 'activity_logs' table
+		await pool.query(`
+		  CREATE TABLE IF NOT EXISTS activity_logs (
+			id SERIAL PRIMARY KEY,
+			username VARCHAR(50),
+			action VARCHAR(255),
+			details TEXT,
+			ip_address VARCHAR(45),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		  )`);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS system_settings (
-        id SERIAL PRIMARY KEY,
-        setting_key VARCHAR(100) UNIQUE,
-        setting_value TEXT,
-        description TEXT,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
+		// Creates the 'system_settings' table
+		await pool.query(`
+		  CREATE TABLE IF NOT EXISTS system_settings (
+			id SERIAL PRIMARY KEY,
+			setting_key VARCHAR(100) UNIQUE,
+			setting_value TEXT,
+			description TEXT,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		  )`);
 
-    // Create default users only if table is empty
-	const userCheck = await pool.query('SELECT COUNT(*) FROM users');
-	if (parseInt(userCheck.rows[0].count) === 0) {
-		console.log('No users found. Creating default users from environment variables...');
+		// Checks if the 'users' table is empty before creating default users
+		const userCheck = await pool.query('SELECT COUNT(*) FROM users');
+		if (parseInt(userCheck.rows[0].count) === 0) {
+			console.log('No users found. Creating default users from environment variables...');
 
-		// ✅ This is the corrected part. Passwords are now read from process.env
-		const defaultUsers = [
-			{ username: 'admin', password: process.env.DEFAULT_ADMIN_PASSWORD, role: 'admin' },
-			{ username: 'user', password: process.env.DEFAULT_USER_PASSWORD, role: 'user' },
-			{ username: 'agent', password: process.env.DEFAULT_AGENT_PASSWORD, role: 'agent' },
-			{ username: 'manager', password: process.env.DEFAULT_MANAGER_PASSWORD, role: 'manager' }
-		];
+			// Reads passwords from your Railway variables
+			const defaultUsers = [
+				{ username: 'admin', password: process.env.DEFAULT_ADMIN_PASSWORD, role: 'admin' },
+				{ username: 'user', password: process.env.DEFAULT_USER_PASSWORD, role: 'user' },
+				{ username: 'agent', password: process.env.DEFAULT_AGENT_PASSWORD, role: 'agent' },
+				{ username: 'manager', password: process.env.DEFAULT_MANAGER_PASSWORD, role: 'manager' }
+			];
 
-		for (const user of defaultUsers) {
-			// This will only create a user if its password is set in the environment variables
-			if (user.password) {
-				const hashedPassword = simpleHash(user.password);
-				await pool.query(`INSERT INTO users (username, password, role) VALUES ($1, $2, $3)`, [user.username, hashedPassword, user.role]);
+			for (const user of defaultUsers) {
+				if (user.password) {
+					const hashedPassword = simpleHash(user.password);
+					await pool.query(`INSERT INTO users (username, password, role) VALUES ($1, $2, $3)`, [user.username, hashedPassword, user.role]);
+				}
 			}
+			console.log('✅ Default users created successfully.');
 		}
-		console.log('✅ Default users created successfully.');
-	}
 
-		// Insert default system settings
+		// Checks if 'system_settings' is empty before inserting defaults
 		const settingsCheck = await pool.query('SELECT COUNT(*) FROM system_settings');
 		if (parseInt(settingsCheck.rows[0].count) === 0) {
 			console.log('Inserting default system settings...');
@@ -139,83 +139,9 @@ async function initializeDatabase() {
 	  } catch (error) {
 		console.error('❌ Error initializing database:', error);
 	  }
-	}
+	}	
 
-
-    // Users table (unchanged)
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY, 
-        username VARCHAR(50) UNIQUE, 
-        password VARCHAR(255),
-        role VARCHAR(20), 
-        status VARCHAR(20) DEFAULT 'Active', fapp.get('/api/settings'
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
-
-    // Activity logs table
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS activity_logs (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50),
-        action VARCHAR(255),
-        details TEXT,
-        ip_address VARCHAR(45),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
-
-    // System settings table
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS system_settings (
-        id SERIAL PRIMARY KEY,
-        setting_key VARCHAR(100) UNIQUE,
-        setting_value TEXT,
-        description TEXT,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
-
-    // Create default users only if table is empty
-    const userCheck = await pool.query('SELECT COUNT(*) FROM users');
-    if (parseInt(userCheck.rows[0].count) === 0) {
-        console.log('No users found. Creating default users...');
-        const defaultUsers = [
-            { username: 'admin', password: 'admin123', role: 'admin' },
-            { username: 'user', password: 'user123', role: 'user' },
-            { username: 'agent', password: 'agent123', role: 'agent' },
-            { username: 'manager', password: 'manager123', role: 'manager' }
-        ];
-        for (const user of defaultUsers) {
-            const hashedPassword = simpleHash(user.password);
-            await pool.query(`INSERT INTO users (username, password, role) VALUES ($1, $2, $3)`, [user.username, hashedPassword, user.role]);
-        }
-        console.log('✅ Default users created successfully.');
-    }
-
-    // Insert default system settings
-    const settingsCheck = await pool.query('SELECT COUNT(*) FROM system_settings');
-    if (parseInt(settingsCheck.rows[0].count) === 0) {
-        console.log('Inserting default system settings...');
-        const defaultSettings = [
-            { key: 'default_cc_email', value: 'support@ramnathshetty.com', description: 'Default CC email address' },
-            { key: 'company_name', value: 'Shetty Legal Advisors', description: 'Company name for correspondence' },
-            { key: 'reminder_days_before', value: '30', description: 'Days before expiry to send reminders' },
-            { key: 'date_format', value: 'DD-MM-YYYY', description: 'Default date format' },
-            { key: 'currency_symbol', value: '₹', description: 'Default currency symbol' },
-            { key: 'session_timeout', value: '60', description: 'Session timeout in minutes' }
-        ];
-        for (const setting of defaultSettings) {
-            await pool.query(`INSERT INTO system_settings (setting_key, setting_value, description) VALUES ($1, $2, $3)`, 
-                [setting.key, setting.value, setting.description]);
-        }
-        console.log('✅ Default settings created successfully.');
-    }
-
-    console.log('✅ Agreement Manager database initialized successfully');
-  } catch (error) {
-    console.error('❌ Error initializing database:', error);
-  }
-}
-
+   
 // Add these to your server.js
 
 // Profit reports endpoint
