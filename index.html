@@ -1038,6 +1038,7 @@
 
 				if (response.ok) {
 					// Store user info and role from the server response
+					console.log('Full response data:', responseData); // Add this line
 					localStorage.setItem('authToken', responseData.user.token);
 					localStorage.setItem('currentUser', username);
 					localStorage.setItem('userRole', responseData.user.role);
@@ -1046,16 +1047,8 @@
 					document.getElementById('loginContainer').style.display = 'none';
 					document.getElementById('mainApp').style.display = 'block';
 					
+					// --- THIS IS THE ADDED LINE ---
 					updateUIVisibility(); 
-					
-					// --- START: Added Debugging Code ---
-					const mainApp = document.getElementById('mainApp');
-					console.log('Main app styles:', {
-						display: mainApp.style.display,
-						visibility: getComputedStyle(mainApp).visibility,
-						height: getComputedStyle(mainApp).height
-					});
-					// --- END: Added Debugging Code ---
 					
 					document.getElementById('currentUser').textContent = username;
 					document.getElementById('currentUserInfo').textContent = username;
@@ -1071,8 +1064,7 @@
 				console.error('Login error:', error);
 				showNotification(error.message || 'Login failed. Please check credentials.', 'error');
 			}
-		}
-		
+}
     function logout() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
@@ -1094,6 +1086,8 @@
 				document.getElementById('loginContainer').style.display = 'none';
 				document.getElementById('mainApp').style.display = 'block';
 
+				// --- ADD THIS LINE ---
+				// This makes sure the correct tabs are shown for returning users.
 				updateUIVisibility(); 
 
 				document.getElementById('currentUser').textContent = user;
