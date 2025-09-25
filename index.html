@@ -293,39 +293,6 @@
         .data-table tr:hover {
             background: #f8f9fa;
         }
-		
-		.data-table tr:hover {
-			background: #f8f9fa;
-		}
-
-		admin-only {
-			display: none !important;
-		}
-
-		.user-only {
-			display: none !important;
-		}
-
-		.agent-only {
-			display: none !important;
-		}
-	/* === ADD THIS CODE RIGHT HERE === */
-	/* Role-based visibility */
-	.admin-only {
-		display: none !important;
-	}
-
-	.user-only {
-		display: none !important;
-	}
-
-	.agent-only {
-		display: none !important;
-	}
-	/* === END OF ADDED CODE === */
-
-	/* Specific column widths for better display */
-	.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 15%; }
 
         /* Specific column widths for better display */
         .data-table th:nth-child(1), .data-table td:nth-child(1) { width: 15%; }
@@ -421,31 +388,25 @@
                 flex-direction: column;
             }
 			
-			.status-indicator {
-				margin: 10px 0;
-				padding: 10px;
-				border-radius: 5px;
-				font-weight: 600;
-				text-align: center;
-			}
+			status-indicator {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            text-align: center;
+        }
 
-			.status-success { 
-				background: #d4edda; 
-				color: #155724; 
-				border: 1px solid #c3e6cb; 
-			}
+        .status-success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
 
-			.status-error { 
-				background: #f8d7da; 
-				color: #721c24; 
-				border: 1px solid #f5c6cb; 
-			}
-
-			.status-warning { 
-				background: #fff3cd; 
-				color: #856404; 
-				border: 1px solid #ffeaa7; 
-			}
+        .status-error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
 
     </style>
 </head>
@@ -472,11 +433,6 @@
 		</form>
     </div>
 
-	<div id="connectionStatus" class="status-indicator" style="margin: 10px 0; padding: 10px; border-radius: 5px; text-align: center; display: none;">
-		<span id="statusText">Checking connection...</span>
-	</div
-
-
     <!-- Main Application -->
     <div class="main-app" id="mainApp">
         <div class="container">
@@ -490,9 +446,13 @@
 
 			<div class="tabs">
 				<button class="tab active" onclick="showTab('agreements', this)">Agreements</button>
+				
 				<button class="tab admin-only" onclick="showTab('reports', this)">Reports</button>
+				
 				<button class="tab" onclick="showTab('whatsapp', this)">WhatsApp</button>
+				
 				<button class="tab" onclick="showTab('logs', this)">Activity Logs</button>
+				
 				<button class="tab admin-only" onclick="showTab('settings', this)">Settings</button>
 			</div>
 
@@ -841,9 +801,7 @@
 
 							<div class="btn-group">
 								<button type="submit" class="btn btn-success">Add User</button>
-								<button type="button" class="btn btn-warning" onclick="retryConnection()" style="margin-top: 10px; width: 100%;">
-									Retry Connection
-								</button>
+								<button type="button" class="btn btn-warning" onclick="showUserList()">Manage Users</button>
 							</div>
 						</form>
 
@@ -1054,155 +1012,59 @@
 
     // Authentication functions
 		async function handleLogin(event) {
-		if (event) event.preventDefault();
-		
-		const username = document.getElementById('username').value;
-		const password = document.getElementById('password').value;
-
-		if (!username || !password) {
-			showNotification('Please enter both username and password', 'error');
-			return;
-		}
-
-		try {
-			console.log('Attempting login for user:', username);
+			if (event) event.preventDefault();
 			
-			const response = await fetch('/api/auth/login', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ username, password })
-			});
+			const username = document.getElementById('username').value;
+			const password = document.getElementById('password').value;
 
-			// Check if response is OK first
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.error || `Login failed with status: ${response.status}`);
+			if (!username || !password) {
+				showNotification('Please enter both username and password', 'error');
+				return;
 			}
 
-			const responseData = await response.json();
-			console.log('Login response:', responseData);
+			try {
+				console.log('Attempting login for user:', username);
+				
+				const response = await fetch('/api/auth/login', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ username, password })
+				});
 
-			// Handle different response structures
-			let authToken, userRole;
-			
-			if (responseData.token) {
-				// Structure 1: { token: "abc", user: { role: "admin" } }
-				authToken = responseData.token;
-				userRole = responseData.user?.role || 'user';
-			} else if (responseData.accessToken) {
-				// Structure 2: { accessToken: "abc", role: "admin" }
-				authToken = responseData.accessToken;
-				userRole = responseData.role || 'user';
-			} else if (responseData.user && responseData.user.token) {
-				// Structure 3: { user: { token: "abc", role: "admin" } }
-				authToken = responseData.user.token;
-				userRole = responseData.user.role || 'user';
-			} else {
-				throw new Error('Invalid response structure from server');
-			}
+				const responseData = await response.json();
+				console.log('Login response:', responseData);
 
-			if (!authToken) {
-				throw new Error('No authentication token received');
-			}
-
-			// Store authentication data
-			localStorage.setItem('authToken', authToken);
-			localStorage.setItem('currentUser', username);
-			localStorage.setItem('userRole', userRole);
-			
-			showNotification('Login successful!', 'success');
-			setTimeout(() => {
-				debugApiResponse('/agreements');
-				debugApiResponse('/settings');
-			}, 1000);
-			// In your handleLogin function, replace the success handling:
-		if (response.ok) {
-			const responseData = await response.json();
-			console.log('Full login response:', responseData);
-			
-			// Extract token and role from different possible structures
-			let authToken, userRole, userName;
-			
-			// Structure 1: { token: "abc", user: { role: "admin", username: "admin" } }
-			if (responseData.token) {
-				authToken = responseData.token;
-				userRole = responseData.user?.role || 'user';
-				userName = responseData.user?.username || username;
-			}
-			// Structure 2: { accessToken: "abc", role: "admin", username: "admin" }
-			else if (responseData.accessToken) {
-				authToken = responseData.accessToken;
-				userRole = responseData.role || 'user';
-				userName = responseData.username || username;
-			}
-			// Structure 3: { user: { token: "abc", role: "admin", username: "admin" } }
-			else if (responseData.user && responseData.user.token) {
-				authToken = responseData.user.token;
-				userRole = responseData.user.role || 'user';
-				userName = responseData.user.username || username;
-			}
-			// Structure 4: Direct properties
-			else if (responseData.role) {
-				authToken = responseData.token || responseData.accessToken;
-				userRole = responseData.role;
-				userName = responseData.username || username;
-			}
-			else {
-				console.warn('Unexpected login response structure:', responseData);
-				// Default fallback
-				authToken = responseData.token || responseData.accessToken;
-				userRole = 'user';
-				userName = username;
-			}
-			
-			if (!authToken) {
-				throw new Error('No authentication token received from server');
-			}
-			
-			// Store authentication data
-			localStorage.setItem('authToken', authToken);
-			localStorage.setItem('currentUser', userName);
-			localStorage.setItem('userRole', userRole);
-			
-			console.log('Stored auth - User:', userName, 'Role:', userRole);
-			
-			showNotification('Login successful!', 'success');
-			
-			// Update UI
-			document.getElementById('loginContainer').style.display = 'none';
-			document.getElementById('mainApp').style.display = 'block';
-			updateUIVisibility();
-			
-			document.getElementById('currentUser').textContent = userName;
-			document.getElementById('currentUserInfo').textContent = userName;
-			document.getElementById('loginTime').textContent = new Date().toLocaleString();
-			
-			// Load initial data
-			await loadAgreements();
-			await loadSystemSettings();
-		}
+				if (response.ok) {
+					// Store user info and role from the server response
+					console.log('Full response data:', responseData); // Add this line
+					localStorage.setItem('authToken', responseData.user.token);
+					localStorage.setItem('currentUser', username);
+					localStorage.setItem('userRole', responseData.user.role);
 					
-			// Update UI
-			document.getElementById('loginContainer').style.display = 'none';
-			document.getElementById('mainApp').style.display = 'block';
-			updateUIVisibility();
-			
-			document.getElementById('currentUser').textContent = username;
-			document.getElementById('currentUserInfo').textContent = username;
-			document.getElementById('loginTime').textContent = new Date().toLocaleString();
-			
-			// Load initial data
-			await loadAgreements();
-			await loadSystemSettings();
-			
-		} catch (error) {
-			console.error('Login error:', error);
-			showNotification(error.message || 'Login failed. Please check credentials.', 'error');
-		}
-	}
-	
+					showNotification('Login successful!', 'success');
+					document.getElementById('loginContainer').style.display = 'none';
+					document.getElementById('mainApp').style.display = 'block';
+					
+					// --- THIS IS THE ADDED LINE ---
+					updateUIVisibility(); 
+					
+					document.getElementById('currentUser').textContent = username;
+					document.getElementById('currentUserInfo').textContent = username;
+					document.getElementById('loginTime').textContent = new Date().toLocaleString();
+					
+					// Load initial data
+					await loadAgreements();
+					await loadSystemSettings();
+				} else {
+					throw new Error(responseData.error || 'Login failed');
+				}
+			} catch (error) {
+				console.error('Login error:', error);
+				showNotification(error.message || 'Login failed. Please check credentials.', 'error');
+			}
+}
     function logout() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
@@ -1239,49 +1101,26 @@
 	// PASTE THIS ENTIRE FUNCTION INTO YOUR SCRIPT TAG
 
 	function updateUIVisibility() {
-			const userRole = localStorage.getItem('userRole') || 'user';
-			console.log(`Updating UI for role: ${userRole}`);
-			
-			// Show/hide admin-only elements
+		const userRole = localStorage.getItem('userRole');
+		console.log(`Updating UI for role: ${userRole}`);
+
+		// First, hide all elements that have a role-specific class
+		document.querySelectorAll('.admin-only').forEach(el => {
+			el.style.display = 'none';
+		});
+
+		// Now, show elements based on the user's role
+		if (userRole === 'admin') {
+			// Admins can see everything, so show all admin-only elements
 			document.querySelectorAll('.admin-only').forEach(el => {
-				if (userRole === 'admin') {
-					el.style.display = 'block';
-				} else {
-					el.style.display = 'none';
-				}
+				// Use 'flex' or 'block' depending on the element's default display style
+				// For buttons in a flex container, 'block' or 'flex' works well.
+				el.style.display = 'block'; 
 			});
-			
-			// Show/hide user-only elements
-			document.querySelectorAll('.user-only').forEach(el => {
-				if (userRole === 'user') {
-					el.style.display = 'block';
-				} else {
-					el.style.display = 'none';
-				}
-			});
-			
-			// Show/hide agent-only elements
-			document.querySelectorAll('.agent-only').forEach(el => {
-				if (userRole === 'agent') {
-					el.style.display = 'block';
-				} else {
-					el.style.display = 'none';
-				}
-			});
-			
-			// Ensure at least one tab is active
-			const activeTabs = document.querySelectorAll('.tab.active');
-			if (activeTabs.length === 0) {
-				// Activate the first visible tab
-				const firstVisibleTab = document.querySelector('.tab:not([style*="display: none"])');
-				if (firstVisibleTab) {
-					firstVisibleTab.click();
-				} else {
-					// Fallback: show agreements tab
-					showTab('agreements', document.querySelector('.tab'));
-				}
-			}
 		}
+		// If the role is 'user', we do nothing, so the admin-only elements remain hidden.
+		// You can add more 'else if' blocks here for other roles like 'agent'.
+}
 	
 	// Calculate profit fields on the form
 		function calculateProfit() {
@@ -1298,206 +1137,82 @@
 			document.getElementById('netProfit').value = netProfit.toFixed(2);
 			document.getElementById('profitMargin').value = profitMargin.toFixed(2);
 		}
-		
-		async function retryConnection() {
-			const success = await testConnection();
-			if (success) {
-				showNotification('Connection restored!', 'success');
-			}
-}
 
-		async function apiCall(endpoint, options = {}) {
-			const token = localStorage.getItem('authToken');
+    async function apiCall(endpoint, options = {}) {
+		try {
+			const token = localStorage.getItem('authToken'); // Get the token from storage
 			const headers = {
 				'Content-Type': 'application/json',
 				...options.headers
 			};
 
+			// If a token exists, add it to the headers
 			if (token) {
 				headers['Authorization'] = `Bearer ${token}`;
 			}
 
-			try {
-				const fullUrl = `/api${endpoint}`;
-				console.log('API Call:', fullUrl, options.method || 'GET');
+			const defaultOptions = { headers };
 
-				const response = await fetch(fullUrl, {
-					...options,
-					headers
-				});
-
-				console.log('Response status:', response.status);
-				console.log('Response ok:', response.ok);
-
-				if (response.status === 401) {
-					showNotification('Session expired. Please login again.', 'error');
-					logout();
-					throw new Error('Authentication required');
-				}
-
-				// Get the response text first to see what we're dealing with
-				const responseText = await response.text();
-				console.log('Raw response text:', responseText);
-
-				if (!response.ok) {
-					let errorMessage = `Request failed with status ${response.status}`;
-					
-					try {
-						const errorData = JSON.parse(responseText);
-						errorMessage = errorData.error || errorData.message || errorMessage;
-					} catch {
-						errorMessage = responseText || errorMessage;
-					}
-					
-					throw new Error(errorMessage);
-				}
-
-				// If empty response (like 204 No Content)
-				if (!responseText) {
-					console.log('Empty response, returning null');
-					return null;
-				}
-
-				// Try to parse as JSON
-				try {
-					const jsonData = JSON.parse(responseText);
-					console.log('Parsed JSON data:', jsonData);
-					return jsonData;
-				} catch (parseError) {
-					console.log('Response is not JSON, returning as text');
-					return responseText;
-				}
-
-			} catch (error) {
-				console.error('API call error:', error);
-				
-				if (error.name === 'TypeError' && error.message.includes('fetch')) {
-					showNotification('Network error. Please check your connection.', 'error');
-				} else {
-					showNotification(error.message || 'Request failed. Please try again.', 'error');
-				}
-				
-				throw error;
+			console.log('API Call:', endpoint);
+			const response = await fetch(`/api${endpoint}`, { ...options, ...defaultOptions });
+			
+			if (response.status === 401) {
+				logout();
+				throw new Error('Authentication required');
 			}
+			
+			return response;
+		} catch (error) {
+			console.error('API call error:', error);
+			showNotification('Network error. Please try again.', 'error');
+			throw error;
 		}
-		
-	function debugUIVisibility() {
-		console.log('=== UI Visibility Debug ===');
-		console.log('User Role:', localStorage.getItem('userRole'));
-		console.log('Admin-only elements:', document.querySelectorAll('.admin-only').length);
-		console.log('Visible admin-only elements:', document.querySelectorAll('.admin-only:not([style*="display: none"])').length);
-		console.log('Active tabs:', document.querySelectorAll('.tab.active').length);
-		
-		document.querySelectorAll('.tab').forEach((tab, index) => {
-			console.log(`Tab ${index}:`, tab.textContent, 'visible:', tab.offsetParent !== null);
-		});
 	}
     
-		async function testConnection() {
-			const statusElement = document.getElementById('connectionStatus');
-			const statusText = document.getElementById('statusText');
-			
-			if (statusElement) {
-				statusElement.style.display = 'block';
-				statusElement.className = 'status-indicator status-warning';
-				statusText.textContent = 'Checking server connection...';
-			}
-
-			try {
-				const response = await fetch('/api/auth/status', {
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					}
-				});
-
-				if (response.ok) {
-					if (statusElement) {
-						statusElement.className = 'status-indicator status-success';
-						statusText.textContent = '✅ Server connection successful';
-					}
-					return true;
-				} else {
-					throw new Error(`Server returned status: ${response.status}`);
-				}
-			} catch (error) {
-				console.error('Connection test failed:', error);
-				
-				if (statusElement) {
-					statusElement.className = 'status-indicator status-error';
-					statusText.textContent = '❌ Cannot connect to server';
-				}
-				
-				// Try alternative endpoints
-				return await tryAlternativeEndpoints();
-			}
-		}
-
-		async function tryAlternativeEndpoints() {
-			const endpoints = [
-				'/api/test',
-				'/api/health',
-				'/auth/status',
-				'/test'
-			];
-			
-			for (const endpoint of endpoints) {
-				try {
-					const response = await fetch(endpoint);
-					if (response.ok) {
-						console.log(`✅ Connected via alternative endpoint: ${endpoint}`);
-						return true;
-					}
-				} catch (error) {
-					console.log(`Endpoint ${endpoint} failed:`, error.message);
-				}
-			}
-			return false;
-		}
+    async function testConnection() {
+        try {
+            const response = await fetch('/api/test');
+            const data = await response.json();
+            console.log('Connection test:', data);
+            return true;
+        } catch (error) {
+            console.error('Connection test failed:', error);
+            return false;
+        }
+    }
 
     // Test on page load
-			document.addEventListener('DOMContentLoaded', function() {
-			// Test connection first
-			testConnection().then(success => {
-				if (success) {
-					console.log('✅ Backend connection successful');
-					// Only check auth if connection is successful
-					checkAuth();
-				} else {
-					console.log('❌ Backend connection failed');
-					showNotification('Cannot connect to server. Please check if the backend is running.', 'error');
-					// Still check auth in case we have cached credentials
-					checkAuth();
-				}
-			});
-		});
+    document.addEventListener('DOMContentLoaded', function() {
+        testConnection().then(success => {
+            if (success) {
+                console.log('✅ Backend connection successful');
+            } else {
+                console.log('❌ Backend connection failed');
+                showNotification('Cannot connect to server. Please check if the backend is running.', 'error');
+            }
+            checkAuth();
+        });
+    });
 
     // Tab management
     function showTab(tabName, element) {
-		// Hide all tab contents
-		document.querySelectorAll('.tab-content').forEach(tab => {
-			tab.classList.remove('active');
-		});
-		
-		// Remove active class from all tabs
-		document.querySelectorAll('.tab').forEach(tab => {
-			tab.classList.remove('active');
-		});
-		
-		// Show selected tab content and set active tab
-		const tabContent = document.getElementById(tabName);
-		if (tabContent) {
-			tabContent.classList.add('active');
-			element.classList.add('active');
-			
-			// Load tab-specific data if needed
-			loadTabData(tabName);
-		} else {
-			console.error(`Tab content not found: ${tabName}`);
-			// Fallback to agreements tab
-			showTab('agreements', document.querySelector('.tab'));
-		}
-	}
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected tab content and set active tab
+        document.getElementById(tabName).classList.add('active');
+        element.classList.add('active');
+        
+        // Load tab-specific data if needed
+        loadTabData(tabName);
+    }
 
     // Async function to load tab-specific data
     async function loadTabData(tabName) {
@@ -1533,54 +1248,27 @@
         }, 3000);
     }
 
-
-		async function debugApiResponse(endpoint) {
-			try {
-				const response = await fetch(`/api${endpoint}`);
-				console.log(`=== DEBUG ${endpoint} ===`);
-				console.log('Response status:', response.status);
-				console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-				
-				const text = await response.text();
-				console.log('Raw response:', text);
-				
-				try {
-					const json = JSON.parse(text);
-					console.log('Parsed JSON:', json);
-				} catch (e) {
-					console.log('Not JSON:', e.message);
-				}
-			} catch (error) {
-				console.error('Debug error:', error);
-			}
-		}
     // Load agreements function - FIXED
-		async function loadAgreements() {
-			try {
-				console.log('Loading agreements...');
-				const response = await apiCall('/agreements');
-				console.log('Full API response:', response);
-				
-				// Handle different response structures
-				let agreements = [];
-				
-				if (Array.isArray(response)) {
-					// Case 1: Direct array response
-					agreements = response;
-				} else if (response && typeof response === 'object') {
-					// Case 2: Object with agreements property
-					agreements = response.agreements || response.data || response.results || [];
-				}
-				
-				console.log('Final agreements array:', agreements);
-				displayAgreements(agreements);
-				
-			} catch (error) {
-				console.error('Error loading agreements:', error);
-				showNotification('Error loading agreements', 'error');
-				displayAgreements([]);
-			}
+    async function loadAgreements() {
+		try {
+			console.log('Loading agreements...');
+			const response = await apiCall('/agreements');
+			console.log('Response status:', response.status);
+			
+			const data = await response.json();
+			console.log('Response data:', data);
+			
+			// Handle both array and object responses
+			const agreements = Array.isArray(data) ? data : (data.agreements || []);
+			console.log('Final agreements:', agreements);
+			
+			displayAgreements(agreements);
+		} catch (error) {
+			console.error('Error loading agreements:', error);
+			showNotification('Error loading agreements', 'error');
+			displayAgreements([]);
 		}
+	}
 
     // Display agreements function - FIXED
     function displayAgreements(agreements) {
@@ -2162,19 +1850,15 @@
 		async function loadSystemSettings() {
 			try {
 				const response = await apiCall('/settings');
-				console.log('Settings response:', response);
+				const settings = await response.json();
 				
-				if (response && typeof response === 'object') {
-					// Update settings form if it exists
-					if (document.getElementById('defaultCCEmail')) {
-						const ccEmail = response.default_cc_email || response.ccEmail || 'support@ramnathshetty.com';
-						document.getElementById('defaultCCEmail').value = ccEmail;
-						document.getElementById('ccEmail').value = ccEmail;
-					}
+				// Update settings form if it exists
+				if (document.getElementById('defaultCCEmail')) {
+					document.getElementById('defaultCCEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
+					document.getElementById('ccEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
 				}
 			} catch (error) {
 				console.error('Error loading settings:', error);
-				// Settings might not be critical, so don't show error
 			}
 		}
 
