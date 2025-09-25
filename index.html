@@ -1214,12 +1214,22 @@
     // Load agreements function - FIXED
     async function loadAgreements() {
 		try {
+			console.log('Loading agreements...');
 			const response = await apiCall('/agreements');
-			const responseData = await response.json();        // <-- This line is incorrect and causes the crash
-			displayAgreements(responseData.agreements); 
+			console.log('Response status:', response.status);
+			
+			const data = await response.json();
+			console.log('Response data:', data);
+			
+			// Handle both array and object responses
+			const agreements = Array.isArray(data) ? data : (data.agreements || []);
+			console.log('Final agreements:', agreements);
+			
+			displayAgreements(agreements);
 		} catch (error) {
 			console.error('Error loading agreements:', error);
 			showNotification('Error loading agreements', 'error');
+			displayAgreements([]);
 		}
 	}
 
