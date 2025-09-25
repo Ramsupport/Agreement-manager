@@ -524,10 +524,42 @@
                             <option value="Registered agreement sent to the client">Registered agreement sent to the client</option>
                         </select>
                     </div>
-                    <div class="form-field">
+									
+				<div class="form-field">
                         <label for="biometricDate">Biometric Scheduled Date</label>
                         <input type="date" id="biometricDate">
                     </div>
+
+                    <div class="form-field">
+                        <label for="actualCost">Actual Cost/Expenses</label>
+                        <input type="number" id="actualCost" step="0.01" placeholder="Enter actual expenses" onchange="calculateProfit()">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="agentCommission">Agent Commission</label>
+                        <input type="number" id="agentCommission" step="0.01" placeholder="Enter agent commission" onchange="calculateProfit()">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="otherExpenses">Other Expenses</label>
+                        <input type="number" id="otherExpenses" step="0.01" placeholder="Enter other expenses" onchange="calculateProfit()">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="grossProfit">Gross Profit (Auto-calculated)</label>
+                        <input type="number" id="grossProfit" step="0.01" readonly placeholder="Gross profit will appear here">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="netProfit">Net Profit (Auto-calculated)</label>
+                        <input type="number" id="netProfit" step="0.01" readonly placeholder="Net profit will appear here">
+                    </div>
+
+                    <div class="form-field">
+                        <label for="profitMargin">Profit Margin % (Auto-calculated)</label>
+                        <input type="number" id="profitMargin" step="0.01" readonly placeholder="Profit margin will appear here">
+                    </div>
+
                 </div>
 
                 <div class="btn-group">
@@ -560,38 +592,7 @@
 			
 			<!-- Add these to your form-grid in the Agreements tab -->
 
-		<!-- Profit Calculation Section -->
-		<div class="form-field">
-			<label for="actualCost">Actual Cost/Expenses</label>
-			<input type="number" id="actualCost" step="0.01" placeholder="Enter actual expenses" onchange="calculateProfit()">
-		</div>
-
-		<div class="form-field">
-			<label for="agentCommission">Agent Commission</label>
-			<input type="number" id="agentCommission" step="0.01" placeholder="Enter agent commission" onchange="calculateProfit()">
-		</div>
-
-		<div class="form-field">
-			<label for="otherExpenses">Other Expenses</label>
-			<input type="number" id="otherExpenses" step="0.01" placeholder="Enter other expenses" onchange="calculateProfit()">
-		</div>
-
-		<!-- Profit Display Fields (Read-only) -->
-		<div class="form-field">
-			<label for="grossProfit">Gross Profit (Auto-calculated)</label>
-			<input type="number" id="grossProfit" step="0.01" readonly placeholder="Gross profit will appear here">
-		</div>
-
-		<div class="form-field">
-			<label for="netProfit">Net Profit (Auto-calculated)</label>
-			<input type="number" id="netProfit" step="0.01" readonly placeholder="Net profit will appear here">
-		</div>
-
-		<div class="form-field">
-			<label for="profitMargin">Profit Margin % (Auto-calculated)</label>
-			<input type="number" id="profitMargin" step="0.01" readonly placeholder="Profit margin will appear here">
-		</div>
-
+		
             <!-- Reports Tab -->
             <div class="tab-content" id="reports">
                 <h2>Reports & Analytics</h2>
@@ -971,6 +972,7 @@
             <span class="close" onclick="closeEditModal()">&times;</span>
             <h2>Edit Agreement</h2>
             <div class="form-grid" id="editFormGrid">
+				<input type="hidden" id="editAgreementId">		
                 <!-- Edit form fields will be populated here -->
             </div>
             <div class="btn-group">
@@ -985,7 +987,7 @@
     const API_BASE_URL = '/api';
 
     // Authentication functions
-			async function handleLogin(event) {
+		async function handleLogin(event) {
 			if (event) event.preventDefault();
 			
 			const username = document.getElementById('username').value;
@@ -1034,7 +1036,7 @@
 				console.error('Login error:', error);
 				showNotification(error.message || 'Login failed. Please check credentials.', 'error');
 			}
-		}
+		}			
 
     function logout() {
         localStorage.removeItem('authToken');
@@ -1062,32 +1064,53 @@
             loadSystemSettings();
         }
     }
+	
+	// Calculate profit fields on the form
+		function calculateProfit() {
+			const total = parseFloat(document.getElementById('totalPayment').value) || 0;
+			const cost = parseFloat(document.getElementById('actualCost').value) || 0;
+			const commission = parseFloat(document.getElementById('agentCommission').value) || 0;
+			const other = parseFloat(document.getElementById('otherExpenses').value) || 0;
 
-    // Simple API call helper function
+			const grossProfit = total - cost;
+			const netProfit = grossProfit - commission - other;
+			const profitMargin = total > 0 ? (netProfit / total) * 100 : 0;
+
+			document.getElementById('grossProfit').value = grossProfit.toFixed(2);
+			document.getElementById('netProfit').value = netProfit.toFixed(2);
+			document.getElementById('profitMargin').value = profitMargin.toFixed(2);
+		}
+
     async function apiCall(endpoint, options = {}) {
-        try {
-            const defaultOptions = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                }
-            };
+		try {
+			const token = localStorage.getItem('authToken'); // Get the token from storage
+			const headers = {
+				'Content-Type': 'application/json',
+				...options.headers
+			};
 
-            console.log('API Call:', endpoint);
-            const response = await fetch(`/api${endpoint}`, { ...defaultOptions, ...options });
-            
-            if (response.status === 401) {
-                logout();
-                throw new Error('Authentication required');
-            }
-            
-            return response;
-        } catch (error) {
-            console.error('API call error:', error);
-            showNotification('Network error. Please try again.', 'error');
-            throw error;
-        }
-    }
+			// If a token exists, add it to the headers
+			if (token) {
+				headers['Authorization'] = `Bearer ${token}`;
+			}
+
+			const defaultOptions = { headers };
+
+			console.log('API Call:', endpoint);
+			const response = await fetch(`/api${endpoint}`, { ...options, ...defaultOptions });
+			
+			if (response.status === 401) {
+				logout();
+				throw new Error('Authentication required');
+			}
+			
+			return response;
+		} catch (error) {
+			console.error('API call error:', error);
+			showNotification('Network error. Please try again.', 'error');
+			throw error;
+		}
+	}
     
     async function testConnection() {
         try {
@@ -1314,48 +1337,464 @@
         }
     }
 
-    // Edit agreement function - SIMPLIFIED
-    async function editAgreement(id) {
-        showNotification('Edit functionality coming soon...', 'warning');
-        // You'll need to implement the full edit modal functionality
-    }
+    // A global variable to hold the list of all form fields
+	const agreementFormFields = [
+		'ownerName', 'location', 'tokenNumber', 'agreementDate', 'ownerContact', 
+		'tenantContact', 'email', 'expiryDate', 'reminderDate', 'ccEmail', 
+		'agentName', 'totalPayment', 'paymentOwner', 'paymentTenant', 
+		'paymentReceivedDate1', 'paymentReceivedDate2', 'paymentDue', 'agreementStatus', 
+		'biometricDate', 'actualCost', 'agentCommission', 'otherExpenses', 
+		'grossProfit', 'netProfit', 'profitMargin'
+	];
 
-    // Utility functions
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+	async function editAgreement(id) {
+		try {
+			const response = await apiCall(`/agreements/${id}`);
+			if (!response.ok) {
+				throw new Error('Failed to fetch agreement details.');
+			}
+			const agreement = await response.json();
 
-    function formatCurrency(amount) {
-        return `₹${parseFloat(amount).toFixed(2)}`;
-    }
+			// Populate the form fields dynamically
+			const formGrid = document.getElementById('editFormGrid');
+			const mainForm = document.querySelector('.tab-content.active .form-grid');
+			
+			// Clone the main form's structure into the modal
+			formGrid.innerHTML = mainForm.innerHTML;
+			document.getElementById('editAgreementId').value = id; // Set the hidden ID
 
-    function formatDate(dateString) {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
-    }
+			// Map database keys to form field IDs and populate
+			const keyMap = {
+				owner_name: 'ownerName', location: 'location', token_number: 'tokenNumber',
+				agreement_date: 'agreementDate', owner_contact: 'ownerContact', tenant_contact: 'tenantContact',
+				email: 'email', expiry_date: 'expiryDate', reminder_date: 'reminderDate',
+				cc_email: 'ccEmail', agent_name: 'agentName', total_payment: 'totalPayment',
+				payment_owner: 'paymentOwner', payment_tenant: 'paymentTenant', payment_due: 'paymentDue',
+				agreement_status: 'agreementStatus', biometric_date: 'biometricDate', actual_cost: 'actualCost',
+				agent_commission: 'agentCommission', other_expenses: 'otherExpenses', gross_profit: 'grossProfit',
+				net_profit: 'netProfit', profit_margin: 'profitMargin'
+				// NOTE: paymentReceivedDate1/2 are not in the DB schema, handle as needed
+			};
 
-    // Load system settings
-    async function loadSystemSettings() {
-        try {
-            const response = await apiCall('/settings');
-            const settings = await response.json();
-            
-            // Update settings form if it exists
-            if (document.getElementById('defaultCCEmail')) {
-                document.getElementById('defaultCCEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
-                document.getElementById('ccEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
-            }
-        } catch (error) {
-            console.error('Error loading settings:', error);
-        }
-    }
+			for (const key in keyMap) {
+				const fieldId = keyMap[key];
+				const element = formGrid.querySelector(`#${fieldId}`);
+				if (element) {
+					// Format date fields correctly for input type="date"
+					if (['agreement_date', 'expiry_date', 'reminder_date', 'biometric_date'].includes(key) && agreement[key]) {
+						element.value = new Date(agreement[key]).toISOString().split('T')[0];
+					} else {
+						element.value = agreement[key] || '';
+					}
+				}
+			}
+
+			// Show the modal
+			document.getElementById('editModal').style.display = 'block';
+			
+		} catch (error) {
+			console.error('Edit error:', error);
+			showNotification(error.message, 'error');
+		}
+	}
+	
+	// --- Settings Management Function ---
+
+	async function saveSystemSettings() {
+		// 1. Collect all the values from the settings form
+		const settingsData = {
+			defaultCCEmail: document.getElementById('defaultCCEmail').value,
+			companyName: document.getElementById('companyName').value,
+			reminderDaysBefore: document.getElementById('reminderDaysBefore').value,
+			dateFormat: document.getElementById('dateFormat').value,
+			currencySymbol: document.getElementById('currencySymbol').value,
+			maxRecordsPerPage: document.getElementById('maxRecordsPerPage').value,
+			sessionTimeout: document.getElementById('sessionTimeout').value
+		};
+
+		try {
+			// 2. Send the data to the backend endpoint
+			const response = await apiCall('/settings', {
+				method: 'PUT',
+				body: JSON.stringify(settingsData)
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to save settings.');
+			}
+			
+			// 3. Show success and update UI if needed
+			showNotification('System settings saved successfully!', 'success');
+			
+			// Optional: Update the CC email field on the Agreements tab to reflect the change
+			document.getElementById('ccEmail').value = settingsData.defaultCCEmail;
+
+		} catch (error) {
+			console.error('Save settings error:', error);
+			showNotification(error.message, 'error');
+		}
+	}
+	
+	
+	// --- User Management Functions ---
+
+	// Add a new user
+	async function addNewUser(event) {
+		event.preventDefault();
+		const username = document.getElementById('newUsername').value;
+		const password = document.getElementById('newUserPassword').value;
+		const role = document.getElementById('newUserRole').value;
+
+		try {
+			const response = await apiCall('/users', {
+				method: 'POST',
+				body: JSON.stringify({ username, password, role })
+			});
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.error || 'Failed to add user.');
+			}
+
+			showNotification(`User "${data.username}" created successfully!`, 'success');
+			document.getElementById('newUsername').value = '';
+			document.getElementById('newUserPassword').value = '';
+			await showUserList(); // Refresh the user list
+		} catch (error) {
+			showNotification(error.message, 'error');
+		}
+	}
+
+	// Fetch and display the list of users
+	async function showUserList() {
+		const container = document.getElementById('userListContainer');
+		const tbody = document.getElementById('usersTable').querySelector('tbody');
+		tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+		container.style.display = 'block';
+
+		try {
+			const response = await apiCall('/users');
+			const users = await response.json();
+			tbody.innerHTML = ''; // Clear loading message
+
+			if (users.length === 0) {
+				tbody.innerHTML = '<tr><td colspan="4">No users found.</td></tr>';
+				return;
+			}
+
+			users.forEach(user => {
+				const row = document.createElement('tr');
+				row.innerHTML = `
+					<td>${escapeHtml(user.username)}</td>
+					<td>${escapeHtml(user.role)}</td>
+					<td>${new Date(user.created_at).toLocaleDateString()}</td>
+					<td>
+						<button class="btn btn-danger" onclick="deleteUser(${user.id}, '${escapeHtml(user.username)}')" style="padding: 5px 10px; font-size: 12px;">Delete</button>
+					</td>
+				`;
+				tbody.appendChild(row);
+			});
+		} catch (error) {
+			tbody.innerHTML = '<tr><td colspan="4">Failed to load users.</td></tr>';
+			showNotification('Could not load users. You might not have admin rights.', 'error');
+		}
+	}
+
+	// Delete a user
+	async function deleteUser(id, username) {
+		if (!confirm(`Are you sure you want to delete the user "${username}"? This action cannot be undone.`)) {
+			return;
+		}
+		try {
+			const response = await apiCall(`/users/${id}`, { method: 'DELETE' });
+			
+			if (response.status === 204) {
+				showNotification(`User "${username}" deleted successfully.`, 'success');
+				await showUserList(); // Refresh the list
+			} else {
+				const data = await response.json();
+				throw new Error(data.error || 'Failed to delete user.');
+			}
+		} catch (error) {
+			showNotification(error.message, 'error');
+		}
+	}
+
+	// Change password for the current user
+	async function changePassword(event) {
+		event.preventDefault();
+		const currentPassword = document.getElementById('currentPassword').value;
+		const newPassword = document.getElementById('newPassword').value;
+		const confirmPassword = document.getElementById('confirmPassword').value;
+
+		if (newPassword !== confirmPassword) {
+			showNotification('New passwords do not match.', 'error');
+			return;
+		}
+		if (newPassword.length < 6) {
+			showNotification('New password must be at least 6 characters long.', 'warning');
+			return;
+		}
+
+		try {
+			const response = await apiCall('/auth/change-password', {
+				method: 'PUT',
+				body: JSON.stringify({ currentPassword, newPassword })
+			});
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.error || 'Failed to change password.');
+			}
+
+			showNotification(data.message, 'success');
+			// Clear password fields
+			document.getElementById('currentPassword').value = '';
+			document.getElementById('newPassword').value = '';
+			document.getElementById('confirmPassword').value = '';
+		} catch (error) {
+			showNotification(error.message, 'error');
+		}
+	}
+		
+	// --- Report Generation Functions ---
+
+		// Helper function to display report data in the table
+		function displayReportResults(data) {
+			const table = document.getElementById('reportTable');
+			const tbody = table.querySelector('tbody');
+			const noResults = document.getElementById('noResults');
+			tbody.innerHTML = '';
+
+			if (!data || data.length === 0) {
+				table.style.display = 'none';
+				noResults.style.display = 'block';
+				return;
+			}
+			
+			table.style.display = 'table';
+			noResults.style.display = 'none';
+			
+			data.forEach(item => {
+				const row = document.createElement('tr');
+				row.innerHTML = `
+					<td>${escapeHtml(item.owner_name || '-')}</td>
+					<td>${escapeHtml(item.token_number || '-')}</td>
+					<td>${escapeHtml(item.location || '-')}</td>
+					<td>${formatCurrency(item.total_payment || 0)}</td>
+					<td>${formatCurrency(item.payment_due || 0)}</td>
+					<td>${escapeHtml(item.agent_name || '-')}</td>
+				`;
+				tbody.appendChild(row);
+			});
+		}
+
+		// Function to generate report by agent
+		async function generateReportByAgent() {
+			const agentName = document.getElementById('reportAgentName').value;
+			if (!agentName) {
+				showNotification('Please select an agent.', 'warning');
+				return;
+			}
+			try {
+				const response = await apiCall(`/reports?agentName=${encodeURIComponent(agentName)}`);
+				const data = await response.json();
+				displayReportResults(data);
+			} catch (error) {
+				showNotification('Error generating agent report.', 'error');
+			}
+		}
+
+		// Function to generate report of expiring agreements
+		async function generateExpiringReport() {
+			const fromDate = document.getElementById('expiryFromDate').value;
+			const toDate = document.getElementById('expiryToDate').value;
+			if (!fromDate || !toDate) {
+				showNotification('Please select both a "From" and "To" date.', 'warning');
+				return;
+			}
+			try {
+				const response = await apiCall(`/reports?expiryFromDate=${fromDate}&expiryToDate=${toDate}`);
+				const data = await response.json();
+				displayReportResults(data);
+			} catch (error) {
+				showNotification('Error generating expiring report.', 'error');
+			}
+		}
+
+		// Function to generate report by pending amount
+		async function generatePendingReport() {
+			const pendingFilter = document.getElementById('pendingAmountFilter').value;
+			if (!pendingFilter) {
+				showNotification('Please select a condition for pending amount.', 'warning');
+				return;
+			}
+			try {
+				const response = await apiCall(`/reports?pendingAmount=${pendingFilter}`);
+				const data = await response.json();
+				displayReportResults(data);
+			} catch (error) {
+				showNotification('Error generating pending amount report.', 'error');
+			}
+		}
+
+		// Function to generate profit report
+		async function generateProfitReport() {
+			const fromDate = document.getElementById('profitFromDate').value;
+			const toDate = document.getElementById('profitToDate').value;
+			const agentName = document.getElementById('profitAgentFilter').value;
+			
+			if (!fromDate || !toDate) {
+				showNotification('Please select both a "From" and "To" date for the profit report.', 'warning');
+				return;
+			}
+			
+			let query = `fromDate=${fromDate}&toDate=${toDate}`;
+			if (agentName) {
+				query += `&agentName=${encodeURIComponent(agentName)}`;
+			}
+			
+			try {
+				const response = await apiCall(`/reports/profit?${query}`);
+				const data = await response.json();
+				
+				// Update summary cards
+				document.getElementById('profitSummary').style.display = 'block';
+				document.getElementById('totalRevenue').textContent = formatCurrency(data.summary.total_revenue || 0);
+				document.getElementById('totalProfit').textContent = formatCurrency(data.summary.total_profit || 0);
+				document.getElementById('averageMargin').textContent = `${parseFloat(data.summary.average_margin || 0).toFixed(2)}%`;
+				document.getElementById('topAgent').textContent = data.topAgent || '-';
+				
+				// Display detailed data in the main report table
+				displayReportResults(data.details);
+				
+			} catch (error) {
+				showNotification('Error generating profit report.', 'error');
+			}
+		}
+
+		// Functions to clear filters
+		function clearAgentFilter() {
+			document.getElementById('reportAgentName').value = '';
+			displayReportResults([]);
+		}
+		function clearExpiryFilter() {
+			document.getElementById('expiryFromDate').value = '';
+			document.getElementById('expiryToDate').value = '';
+			displayReportResults([]);
+		}
+		function clearPendingFilter() {
+			document.getElementById('pendingAmountFilter').value = '';
+			displayReportResults([]);
+		}
+		function clearProfitFilter() {
+			document.getElementById('profitFromDate').value = '';
+			document.getElementById('profitToDate').value = '';
+			document.getElementById('profitAgentFilter').value = '';
+			document.getElementById('profitSummary').style.display = 'none';
+			displayReportResults([]);
+		}
+			
+	async function saveEditedAgreement() {
+		const id = document.getElementById('editAgreementId').value;
+		const editForm = document.getElementById('editFormGrid');
+
+		// Collect data from the edit form
+		const updatedData = {};
+		agreementFormFields.forEach(fieldId => {
+			const element = editForm.querySelector(`#${fieldId}`);
+			if (element) {
+				updatedData[fieldId] = element.value;
+			}
+		});
+
+		// Remap camelCase keys to snake_case if your backend expects that (it does not, but good practice)
+		// For this specific app, the body keys are camelCase as per your `collectAgreementData` function
+		const body = {
+			ownerName: updatedData.ownerName,
+			location: updatedData.location,
+			tokenNumber: updatedData.tokenNumber,
+			agreementDate: updatedData.agreementDate,
+			ownerContact: updatedData.ownerContact,
+			tenantContact: updatedData.tenantContact,
+			email: updatedData.email,
+			expiryDate: updatedData.expiryDate,
+			reminderDate: updatedData.reminderDate,
+			ccEmail: updatedData.ccEmail,
+			agentName: updatedData.agentName,
+			totalPayment: updatedData.totalPayment,
+			paymentOwner: updatedData.paymentOwner,
+			paymentTenant: updatedData.paymentTenant,
+			paymentDue: updatedData.paymentDue,
+			agreementStatus: updatedData.agreementStatus,
+			biometricDate: updatedData.biometricDate,
+			actualCost: updatedData.actualCost,
+			agentCommission: updatedData.agentCommission,
+			otherExpenses: updatedData.otherExpenses,
+		};
+		
+		try {
+			const response = await apiCall(`/agreements/${id}`, {
+				method: 'PUT',
+				body: JSON.stringify(body),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to save changes.');
+			}
+
+			showNotification('Agreement updated successfully!', 'success');
+			closeEditModal();
+			await loadAgreements(); // Refresh the main table
+
+		} catch (error) {
+			console.error('Save changes error:', error);
+			showNotification(error.message, 'error');
+		}
+	}
+
+		function closeEditModal() {
+			document.getElementById('editModal').style.display = 'none';
+		}
+
+		// Utility functions
+		function escapeHtml(text) {
+			if (!text) return '';
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+
+		function formatCurrency(amount) {
+			return `₹${parseFloat(amount).toFixed(2)}`;
+		}
+
+		function formatDate(dateString) {
+			if (!dateString) return '-';
+			const date = new Date(dateString);
+			const day = String(date.getDate()).padStart(2, '0');
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const year = date.getFullYear();
+			return `${day}-${month}-${year}`;
+		}
+
+		// Load system settings
+		async function loadSystemSettings() {
+			try {
+				const response = await apiCall('/settings');
+				const settings = await response.json();
+				
+				// Update settings form if it exists
+				if (document.getElementById('defaultCCEmail')) {
+					document.getElementById('defaultCCEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
+					document.getElementById('ccEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
+				}
+			} catch (error) {
+				console.error('Error loading settings:', error);
+			}
+		}
 
     // Load activity logs
     async function loadActivityLogs() {
@@ -1453,3 +1892,5 @@
         }
     });
 </script>
+</body>
+</html>
