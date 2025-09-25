@@ -2,7 +2,7 @@
 const express = require('express');
 const path = require('path');
 const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
+const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
@@ -91,7 +91,7 @@ async function initDb() {
     // Seed default admin user if none exist
     const res = await pool.query(`SELECT COUNT(*) FROM users;`);
     if (parseInt(res.rows[0].count) === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const hashedPassword = await argon2.hash('admin123');
       await pool.query(
         `INSERT INTO users (username, password, role) VALUES ($1, $2, $3);`,
         ['admin', hashedPassword, 'admin']
@@ -196,7 +196,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = result.rows[0];
     
     // Verify password
-    const validPassword = await bcrypt.compare(password, user.password);
+    const validPassword = await argon2.verify(user.password, password);
     if (!validPassword) {
       console.log('Invalid password for user:', username);
       return res.status(401).json({ error: 'Invalid credentials' });
