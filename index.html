@@ -447,15 +447,14 @@
 			<div class="tabs">
 				<button class="tab active" onclick="showTab('agreements', this)">Agreements</button>
 				
-				<button class="tab admin-only" onclick="showTab('reports', this)">Reports</button>
+				<button class="tab" onclick="showTab('reports', this)">Reports</button>
 				
 				<button class="tab" onclick="showTab('whatsapp', this)">WhatsApp</button>
 				
 				<button class="tab" onclick="showTab('logs', this)">Activity Logs</button>
 				
-				<button class="tab admin-only" onclick="showTab('settings', this)">Settings</button>
+				<button class="tab" onclick="showTab('settings', this)">Settings</button>
 			</div>
-
             <!-- Agreements Tab -->
             <div class="tab-content active" id="agreements">
                 <h2>Agreement Management</h2>
@@ -1100,26 +1099,24 @@
 	
 	// PASTE THIS ENTIRE FUNCTION INTO YOUR SCRIPT TAG
 
-	function updateUIVisibility() {
-		const userRole = localStorage.getItem('userRole');
-		console.log(`Updating UI for role: ${userRole}`);
+	// Replace the updateUIVisibility function with this simplified version:
 
-		// First, hide all elements that have a role-specific class
-		document.querySelectorAll('.admin-only').forEach(el => {
-			el.style.display = 'none';
-		});
-
-		// Now, show elements based on the user's role
-		if (userRole === 'admin') {
-			// Admins can see everything, so show all admin-only elements
-			document.querySelectorAll('.admin-only').forEach(el => {
-				// Use 'flex' or 'block' depending on the element's default display style
-				// For buttons in a flex container, 'block' or 'flex' works well.
-				el.style.display = 'block'; 
+		function updateUIVisibility() {
+			const userRole = localStorage.getItem('userRole');
+			console.log(`Updating UI for role: ${userRole}`);
+			
+			// Show all tabs for all users - no restrictions
+			document.querySelectorAll('.tab').forEach(el => {
+				el.style.display = 'block';
 			});
-		}
-		// If the role is 'user', we do nothing, so the admin-only elements remain hidden.
-		// You can add more 'else if' blocks here for other roles like 'agent'.
+			
+			// Ensure the main app container is visible
+			const mainApp = document.getElementById('mainApp');
+			if (mainApp) {
+				mainApp.style.display = 'block';
+			}
+    
+    console.log('All tabs are now visible for all users');
 }
 	
 	// Calculate profit fields on the form
