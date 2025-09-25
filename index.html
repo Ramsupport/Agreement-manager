@@ -17,6 +17,12 @@
             min-height: 100vh;
             color: #333;
         }
+		
+			.main-app.force-visible {
+			display: block !important;
+			visibility: visible !important;
+			opacity: 1 !important;
+		}
 
         .container {
             max-width: 1400px;
@@ -1015,14 +1021,14 @@
 			
 			const username = document.getElementById('username').value;
 			const password = document.getElementById('password').value;
-
+			
 			if (!username || !password) {
 				showNotification('Please enter both username and password', 'error');
 				return;
 			}
 
 			try {
-				console.log('Attempting login for user:', username);
+				console.log('🔄 Attempting login for user:', username);
 				
 				const response = await fetch('/api/auth/login', {
 					method: 'POST',
@@ -1033,37 +1039,126 @@
 				});
 
 				const responseData = await response.json();
-				console.log('Login response:', responseData);
+				console.log('📥 Login response:', responseData);
+				console.log('📥 Response status:', response.status);
 
 				if (response.ok) {
+					console.log('✅ Login successful - starting UI transition');
+					
 					// Store user info and role from the server response
-					console.log('Full response data:', responseData); // Add this line
+					console.log('📦 Storing user data...');
 					localStorage.setItem('authToken', responseData.user.token);
 					localStorage.setItem('currentUser', username);
 					localStorage.setItem('userRole', responseData.user.role);
+					console.log('📦 Stored role:', responseData.user.role);
 					
 					showNotification('Login successful!', 'success');
-					document.getElementById('loginContainer').style.display = 'none';
-					document.getElementById('mainApp').style.display = 'block';
 					
-					// --- THIS IS THE ADDED LINE ---
+					// Debug DOM elements before changes
+					const loginContainer = document.getElementById('loginContainer');
+					const mainApp = document.getElementById('mainApp');
+					console.log('🔍 Before changes:');
+					console.log('   Login container display:', loginContainer.style.display);
+					console.log('   Main app display:', mainApp.style.display);
+					console.log('   Main app computed display:', window.getComputedStyle(mainApp).display);
+					
+					// Make UI changes
+					console.log('🔄 Hiding login container...');
+					loginContainer.style.display = 'none';
+					console.log('🔄 Showing main app...');
+					mainApp.style.display = 'block';
+					mainApp.classList.add('force-visible'); // ADD THE MISSING LINE
+					
+					// Debug DOM elements after changes
+					console.log('🔍 After changes:');
+					console.log('   Login container display:', loginContainer.style.display);
+					console.log('   Login container computed:', window.getComputedStyle(loginContainer).display);
+					console.log('   Main app display:', mainApp.style.display);
+					console.log('   Main app computed display:', window.getComputedStyle(mainApp).display);
+					console.log('   Main app classes:', mainApp.className);
+					
+					// Call updateUIVisibility
+					console.log('🔄 Calling updateUIVisibility...');
 					updateUIVisibility(); 
+					console.log('✅ updateUIVisibility completed');
 					
+					// Check visibility of tabs
+					const tabs = document.querySelectorAll('.tab');
+					console.log('🔍 Tab visibility check:');
+					tabs.forEach((tab, index) => {
+						console.log(`   Tab ${index} (${tab.textContent.trim()}): display=${tab.style.display}, computed=${window.getComputedStyle(tab).display}`);
+					});
+					
+					// Check tab content visibility
+					const tabContents = document.querySelectorAll('.tab-content');
+					console.log('🔍 Tab content visibility check:');
+					tabContents.forEach((content, index) => {
+						console.log(`   Content ${index} (${content.id}): display=${content.style.display}, classes=${content.className}`);
+					});
+					
+					// Check if agreements tab content is visible
+					const agreementsContent = document.getElementById('agreements');
+					console.log('🔍 Agreements tab specific check:');
+					console.log('   Agreements display:', agreementsContent.style.display);
+					console.log('   Agreements computed:', window.getComputedStyle(agreementsContent).display);
+					console.log('   Agreements classes:', agreementsContent.className);
+					
+					// Set user info
+					console.log('🔄 Setting user info...');
 					document.getElementById('currentUser').textContent = username;
 					document.getElementById('currentUserInfo').textContent = username;
 					document.getElementById('loginTime').textContent = new Date().toLocaleString();
 					
+					// Final visibility check
+					console.log('🔍 Final state check:');
+					console.log('   Body visibility:', window.getComputedStyle(document.body).display);
+					console.log('   Main app final state:', {
+						display: mainApp.style.display,
+						computed: window.getComputedStyle(mainApp).display,
+						classes: mainApp.className,
+						offsetHeight: mainApp.offsetHeight,
+						offsetWidth: mainApp.offsetWidth
+					});
+					
 					// Load initial data
-					await loadAgreements();
-					await loadSystemSettings();
+					console.log('🔄 Loading agreements...');
+					try {
+						await loadAgreements();
+						console.log('✅ Agreements loaded');
+					} catch (error) {
+						console.error('❌ Error loading agreements:', error);
+					}
+					
+					console.log('🔄 Loading system settings...');
+					try {
+						await loadSystemSettings();
+						console.log('✅ System settings loaded');
+					} catch (error) {
+						console.error('❌ Error loading system settings:', error);
+					}
+					
+					console.log('🎉 Login process completed successfully');
+					
+					// Final check after everything is loaded
+					setTimeout(() => {
+						console.log('🔍 Post-load visibility check:');
+						console.log('   Main app final computed:', window.getComputedStyle(mainApp).display);
+						console.log('   Main app dimensions:', {
+							height: mainApp.offsetHeight,
+							width: mainApp.offsetWidth,
+							scrollHeight: mainApp.scrollHeight
+						});
+					}, 1000);
+					
 				} else {
 					throw new Error(responseData.error || 'Login failed');
 				}
 			} catch (error) {
-				console.error('Login error:', error);
+				console.error('❌ Login error:', error);
 				showNotification(error.message || 'Login failed. Please check credentials.', 'error');
 			}
-}
+		}
+
     function logout() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
@@ -1075,20 +1170,19 @@
         showNotification('Logged out successfully', 'success');
     }
 
-    // Check authentication on page load
+    
     // Check authentication on page load
 		function checkAuth() {
 			const token = localStorage.getItem('authToken');
 			const user = localStorage.getItem('currentUser');
 			
 			if (token && user) {
-				document.getElementById('loginContainer').style.display = 'none';
+				document.getElementById('loginContainer').style.display = 'none'; // ADD THIS LINE
 				document.getElementById('mainApp').style.display = 'block';
-
-				// --- ADD THIS LINE ---
-				// This makes sure the correct tabs are shown for returning users.
+				document.getElementById('mainApp').classList.add('force-visible');
+				
 				updateUIVisibility(); 
-
+				
 				document.getElementById('currentUser').textContent = user;
 				document.getElementById('currentUserInfo').textContent = user;
 				document.getElementById('loginTime').textContent = new Date().toLocaleString();
@@ -1097,27 +1191,30 @@
 			}
 		}
 	
-	// PASTE THIS ENTIRE FUNCTION INTO YOUR SCRIPT TAG
 
-	// Replace the updateUIVisibility function with this simplified version:
 
 		function updateUIVisibility() {
 			const userRole = localStorage.getItem('userRole');
-			console.log(`Updating UI for role: ${userRole}`);
+			console.log('🔄 updateUIVisibility called with role:', userRole);
 			
 			// Show all tabs for all users - no restrictions
-			document.querySelectorAll('.tab').forEach(el => {
+			const tabs = document.querySelectorAll('.tab');
+			console.log('🔍 Found', tabs.length, 'tabs');
+			
+			tabs.forEach((el, index) => {
+				console.log(`🔄 Setting tab ${index} to display: block`);
 				el.style.display = 'block';
 			});
 			
 			// Ensure the main app container is visible
 			const mainApp = document.getElementById('mainApp');
 			if (mainApp) {
+				console.log('🔄 Ensuring main app is visible');
 				mainApp.style.display = 'block';
 			}
-    
-    console.log('All tabs are now visible for all users');
-}
+			
+			console.log('✅ All tabs are now visible for all users');
+		}
 	
 	// Calculate profit fields on the form
 		function calculateProfit() {
