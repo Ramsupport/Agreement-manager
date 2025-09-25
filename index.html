@@ -1113,7 +1113,77 @@
 			localStorage.setItem('userRole', userRole);
 			
 			showNotification('Login successful!', 'success');
+			setTimeout(() => {
+				debugApiResponse('/agreements');
+				debugApiResponse('/settings');
+			}, 1000);
+			// In your handleLogin function, replace the success handling:
+		if (response.ok) {
+			const responseData = await response.json();
+			console.log('Full login response:', responseData);
 			
+			// Extract token and role from different possible structures
+			let authToken, userRole, userName;
+			
+			// Structure 1: { token: "abc", user: { role: "admin", username: "admin" } }
+			if (responseData.token) {
+				authToken = responseData.token;
+				userRole = responseData.user?.role || 'user';
+				userName = responseData.user?.username || username;
+			}
+			// Structure 2: { accessToken: "abc", role: "admin", username: "admin" }
+			else if (responseData.accessToken) {
+				authToken = responseData.accessToken;
+				userRole = responseData.role || 'user';
+				userName = responseData.username || username;
+			}
+			// Structure 3: { user: { token: "abc", role: "admin", username: "admin" } }
+			else if (responseData.user && responseData.user.token) {
+				authToken = responseData.user.token;
+				userRole = responseData.user.role || 'user';
+				userName = responseData.user.username || username;
+			}
+			// Structure 4: Direct properties
+			else if (responseData.role) {
+				authToken = responseData.token || responseData.accessToken;
+				userRole = responseData.role;
+				userName = responseData.username || username;
+			}
+			else {
+				console.warn('Unexpected login response structure:', responseData);
+				// Default fallback
+				authToken = responseData.token || responseData.accessToken;
+				userRole = 'user';
+				userName = username;
+			}
+			
+			if (!authToken) {
+				throw new Error('No authentication token received from server');
+			}
+			
+			// Store authentication data
+			localStorage.setItem('authToken', authToken);
+			localStorage.setItem('currentUser', userName);
+			localStorage.setItem('userRole', userRole);
+			
+			console.log('Stored auth - User:', userName, 'Role:', userRole);
+			
+			showNotification('Login successful!', 'success');
+			
+			// Update UI
+			document.getElementById('loginContainer').style.display = 'none';
+			document.getElementById('mainApp').style.display = 'block';
+			updateUIVisibility();
+			
+			document.getElementById('currentUser').textContent = userName;
+			document.getElementById('currentUserInfo').textContent = userName;
+			document.getElementById('loginTime').textContent = new Date().toLocaleString();
+			
+			// Load initial data
+			await loadAgreements();
+			await loadSystemSettings();
+		}
+					
 			// Update UI
 			document.getElementById('loginContainer').style.display = 'none';
 			document.getElementById('mainApp').style.display = 'block';
@@ -1248,7 +1318,7 @@
 			}
 
 			try {
-				const fullUrl = endpoint.startsWith('http') ? endpoint : `/api${endpoint}`;
+				const fullUrl = `/api${endpoint}`;
 				console.log('API Call:', fullUrl, options.method || 'GET');
 
 				const response = await fetch(fullUrl, {
@@ -1256,41 +1326,46 @@
 					headers
 				});
 
+				console.log('Response status:', response.status);
+				console.log('Response ok:', response.ok);
+
 				if (response.status === 401) {
 					showNotification('Session expired. Please login again.', 'error');
 					logout();
 					throw new Error('Authentication required');
 				}
 
-				if (response.status === 404) {
-					console.warn('Endpoint not found:', fullUrl);
-					throw new Error('Service temporarily unavailable');
-				}
+				// Get the response text first to see what we're dealing with
+				const responseText = await response.text();
+				console.log('Raw response text:', responseText);
 
 				if (!response.ok) {
-					const errorText = await response.text();
 					let errorMessage = `Request failed with status ${response.status}`;
 					
 					try {
-						const errorData = JSON.parse(errorText);
+						const errorData = JSON.parse(responseText);
 						errorMessage = errorData.error || errorData.message || errorMessage;
 					} catch {
-						errorMessage = errorText || errorMessage;
+						errorMessage = responseText || errorMessage;
 					}
 					
 					throw new Error(errorMessage);
 				}
 
-				// For DELETE requests that might not return content
-				if (response.status === 204) {
-					return { success: true };
+				// If empty response (like 204 No Content)
+				if (!responseText) {
+					console.log('Empty response, returning null');
+					return null;
 				}
 
-				const contentType = response.headers.get('content-type');
-				if (contentType && contentType.includes('application/json')) {
-					return await response.json();
-				} else {
-					return await response.text();
+				// Try to parse as JSON
+				try {
+					const jsonData = JSON.parse(responseText);
+					console.log('Parsed JSON data:', jsonData);
+					return jsonData;
+				} catch (parseError) {
+					console.log('Response is not JSON, returning as text');
+					return responseText;
 				}
 
 			} catch (error) {
@@ -1305,6 +1380,7 @@
 				throw error;
 			}
 		}
+		
 	function debugUIVisibility() {
 		console.log('=== UI Visibility Debug ===');
 		console.log('User Role:', localStorage.getItem('userRole'));
@@ -1457,27 +1533,54 @@
         }, 3000);
     }
 
-    // Load agreements function - FIXED
-    async function loadAgreements() {
-		try {
-			console.log('Loading agreements...');
-			const response = await apiCall('/agreements');
-			console.log('Response status:', response.status);
-			
-			const data = await response.json();
-			console.log('Response data:', data);
-			
-			// Handle both array and object responses
-			const agreements = Array.isArray(data) ? data : (data.agreements || []);
-			console.log('Final agreements:', agreements);
-			
-			displayAgreements(agreements);
-		} catch (error) {
-			console.error('Error loading agreements:', error);
-			showNotification('Error loading agreements', 'error');
-			displayAgreements([]);
+
+		async function debugApiResponse(endpoint) {
+			try {
+				const response = await fetch(`/api${endpoint}`);
+				console.log(`=== DEBUG ${endpoint} ===`);
+				console.log('Response status:', response.status);
+				console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+				
+				const text = await response.text();
+				console.log('Raw response:', text);
+				
+				try {
+					const json = JSON.parse(text);
+					console.log('Parsed JSON:', json);
+				} catch (e) {
+					console.log('Not JSON:', e.message);
+				}
+			} catch (error) {
+				console.error('Debug error:', error);
+			}
 		}
-	}
+    // Load agreements function - FIXED
+		async function loadAgreements() {
+			try {
+				console.log('Loading agreements...');
+				const response = await apiCall('/agreements');
+				console.log('Full API response:', response);
+				
+				// Handle different response structures
+				let agreements = [];
+				
+				if (Array.isArray(response)) {
+					// Case 1: Direct array response
+					agreements = response;
+				} else if (response && typeof response === 'object') {
+					// Case 2: Object with agreements property
+					agreements = response.agreements || response.data || response.results || [];
+				}
+				
+				console.log('Final agreements array:', agreements);
+				displayAgreements(agreements);
+				
+			} catch (error) {
+				console.error('Error loading agreements:', error);
+				showNotification('Error loading agreements', 'error');
+				displayAgreements([]);
+			}
+		}
 
     // Display agreements function - FIXED
     function displayAgreements(agreements) {
@@ -2059,15 +2162,19 @@
 		async function loadSystemSettings() {
 			try {
 				const response = await apiCall('/settings');
-				const settings = await response.json();
+				console.log('Settings response:', response);
 				
-				// Update settings form if it exists
-				if (document.getElementById('defaultCCEmail')) {
-					document.getElementById('defaultCCEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
-					document.getElementById('ccEmail').value = settings.default_cc_email || 'support@ramnathshetty.com';
+				if (response && typeof response === 'object') {
+					// Update settings form if it exists
+					if (document.getElementById('defaultCCEmail')) {
+						const ccEmail = response.default_cc_email || response.ccEmail || 'support@ramnathshetty.com';
+						document.getElementById('defaultCCEmail').value = ccEmail;
+						document.getElementById('ccEmail').value = ccEmail;
+					}
 				}
 			} catch (error) {
 				console.error('Error loading settings:', error);
+				// Settings might not be critical, so don't show error
 			}
 		}
 
