@@ -99,6 +99,10 @@ app.use(express.static(path.join(__dirname)));
 
 app.get('/api/health', (req, res) => res.json({ status: 'healthy' }));
 
+app.get('/api/test', (req, res) => {
+  res.json({ status: 'Backend is running', timestamp: new Date().toISOString() });
+});
+
 app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
     try {
