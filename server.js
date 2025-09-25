@@ -175,9 +175,9 @@ app.get('/api/test', (req, res) => {
 // Enhanced Authentication with JWT
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
-  
+
   console.log('Login attempt for user:', username);
-  
+
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password required' });
   }
@@ -187,15 +187,15 @@ app.post('/api/auth/login', async (req, res) => {
       'SELECT * FROM users WHERE username = $1;',
       [username]
     );
-    
+
     if (result.rows.length === 0) {
       console.log('User not found:', username);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const user = result.rows[0];
-    
-    // Verify password
+
+    // Verify password using argon2
     const validPassword = await argon2.verify(user.password, password);
     if (!validPassword) {
       console.log('Invalid password for user:', username);
@@ -373,6 +373,7 @@ app.delete('/api/users/:id', authenticateToken, checkAdmin, async (req, res) => 
 });
 
 // PUT (update) current user's password
+// PUT (update) current user's password
 app.put('/api/auth/change-password', authenticateToken, async (req, res) => {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.id;
@@ -385,15 +386,15 @@ app.put('/api/auth/change-password', authenticateToken, async (req, res) => {
         if (userResult.rows.length === 0) {
             return res.status(404).json({ error: 'User not found.' });
         }
-        
+
         const user = userResult.rows[0];
-        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        const validPassword = await argon2.verify(user.password, currentPassword);
 
         if (!validPassword) {
             return res.status(401).json({ error: 'Invalid current password.' });
         }
 
-        const newHashedPassword = await bcrypt.hash(newPassword, 10);
+        const newHashedPassword = await argon2.hash(newPassword);
         await pool.query('UPDATE users SET password = $1 WHERE id = $2;', [newHashedPassword, userId]);
 
         res.json({ message: 'Password updated successfully.' });
