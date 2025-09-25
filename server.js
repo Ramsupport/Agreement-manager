@@ -1,623 +1,694 @@
-<script>
-// Cloud-based API functions
-const API_BASE_URL = '/api';
+// server.js
+const express = require('express');
+const path = require('path');
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const cors = require('cors');
 
-// Authentication functions
-async function handleLogin(event) {
-    if (event) event.preventDefault();
-    
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-    if (!username || !password) {
-        showNotification('Please enter both username and password', 'error');
-        return;
+// Database setup for Railway
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
+
+// Initialize database tables
+async function initDb() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT now()
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS agents (
+        id SERIAL PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS agreements (
+        id SERIAL PRIMARY KEY,
+        owner_name TEXT,
+        location TEXT,
+        token_number TEXT UNIQUE,
+        agreement_date DATE,
+        owner_contact TEXT,
+        tenant_contact TEXT,
+        email TEXT,
+        expiry_date DATE,
+        reminder_date DATE,
+        cc_email TEXT,
+        agent_name TEXT,
+        total_payment NUMERIC,
+        payment_owner NUMERIC,
+        payment_tenant NUMERIC,
+        payment_due NUMERIC,
+        agreement_status TEXT,
+        biometric_date DATE,
+        actual_cost NUMERIC,
+        agent_commission NUMERIC,
+        other_expenses NUMERIC,
+        gross_profit NUMERIC,
+        net_profit NUMERIC,
+        profit_margin NUMERIC,
+        created_at TIMESTAMP DEFAULT now()
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_logs (
+        id SERIAL PRIMARY KEY,
+        username TEXT,
+        action TEXT,
+        details TEXT,
+        ip_address TEXT,
+        created_at TIMESTAMP DEFAULT now()
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        default_cc_email TEXT,
+        company_name TEXT,
+        reminder_days_before INTEGER,
+        date_format TEXT,
+        currency_symbol TEXT,
+        session_timeout INTEGER,
+        max_records_per_page INTEGER
+      );
+    `);
+
+    // Seed default admin user if none exist
+    const res = await pool.query(`SELECT COUNT(*) FROM users;`);
+    if (parseInt(res.rows[0].count) === 0) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      await pool.query(
+        `INSERT INTO users (username, password, role) VALUES ($1, $2, $3);`,
+        ['admin', hashedPassword, 'admin']
+      );
+      console.log('Seeded default admin user (admin/admin123).');
     }
 
-    try {
-        console.log('Attempting login for user:', username);
-        
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password })
-        });
-
-        const responseData = await response.json();
-        console.log('Login response:', responseData);
-
-        if (response.ok) {
-            // Store JWT token properly
-            localStorage.setItem('authToken', responseData.user.token);
-            localStorage.setItem('currentUser', responseData.user.username);
-            localStorage.setItem('userRole', responseData.user.role);
-            localStorage.setItem('userId', responseData.user.id);
-            
-            showNotification('Login successful!', 'success');
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('currentUser').textContent = responseData.user.username;
-            document.getElementById('currentUserInfo').textContent = responseData.user.username;
-            document.getElementById('loginTime').textContent = new Date().toLocaleString();
-            
-            // Load initial data
-            await loadAgreements();
-            await loadSystemSettings();
-        } else {
-            throw new Error(responseData.error || 'Login failed');
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        showNotification(error.message || 'Login failed. Please check credentials.', 'error');
+    // Seed agents list if empty
+    const agentsRes = await pool.query(`SELECT COUNT(*) FROM agents;`);
+    if (parseInt(agentsRes.rows[0].count) === 0) {
+      const defaultAgents = ['Ramnath', 'Agent 1', 'Agent 2', 'Agent 3'];
+      for (let name of defaultAgents) {
+        await pool.query(`INSERT INTO agents (name) VALUES ($1) ON CONFLICT DO NOTHING;`, [name]);
+      }
+      console.log('Seeded default agents:', defaultAgents);
     }
-}
 
-function logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('loginContainer').style.display = 'flex';
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    showNotification('Logged out successfully', 'success');
-}
-
-// Enhanced API call helper with JWT authentication
-async function apiCall(endpoint, options = {}) {
-    const token = localStorage.getItem('authToken');
+    // Seed default settings row if none
+    const settingsRes = await pool.query(`SELECT COUNT(*) FROM system_settings;`);
+    if (parseInt(settingsRes.rows[0].count) === 0) {
+      await pool.query(
+        `INSERT INTO system_settings (id, default_cc_email, company_name, reminder_days_before, date_format, currency_symbol, session_timeout, max_records_per_page)
+         VALUES (1, $1, $2, $3, $4, $5, $6, $7);`,
+        ['support@ramnathshetty.com', 'Shetty Legal Advisors', 30, 'DD-MM-YYYY', '₹', 60, 25]
+      );
+      console.log('Seeded default system settings.');
+    }
     
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
-            ...options.headers
-        }
+    console.log('Database initialization completed successfully.');
+  } catch (err) {
+    console.error('Error initializing database:', err.stack);
+    throw err;
+  }
+}
+
+// JWT Authentication middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// Middleware to check for admin role
+const checkAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'admin') {
+        next();
+    } else {
+        res.status(403).json({ error: 'Forbidden: Admin access required' });
+    }
+};
+
+// Initialize database
+initDb().catch(err => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
+});
+
+// Serve static files
+app.use(express.static(path.join(__dirname)));
+
+// API: Test connection
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Enhanced Authentication with JWT
+app.post('/api/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  console.log('Login attempt for user:', username);
+  
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password required' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE username = $1;',
+      [username]
+    );
+    
+    if (result.rows.length === 0) {
+      console.log('User not found:', username);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = result.rows[0];
+    
+    // Verify password
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      console.log('Invalid password for user:', username);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Create JWT token
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        username: user.username, 
+        role: user.role 
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Log successful login
+    await pool.query(
+      'INSERT INTO activity_logs (username, action, details, ip_address) VALUES ($1, $2, $3, $4);',
+      [username, 'LOGIN', 'User logged in successfully', req.ip]
+    );
+
+    // Return user info (without password) and token
+    const userResponse = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      token: token
     };
 
-    try {
-        console.log('API Call:', endpoint);
-        const response = await fetch(`/api${endpoint}`, { ...defaultOptions, ...options });
-        
-        if (response.status === 401) {
-            showNotification('Session expired. Please login again.', 'error');
-            logout();
-            throw new Error('Authentication required');
-        }
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            throw new Error(errorData.error || `HTTP ${response.status}`);
-        }
-        
-        return response;
-    } catch (error) {
-        console.error('API call error:', error);
-        showNotification(error.message || 'Network error. Please try again.', 'error');
-        throw error;
-    }
-}
-
-// Check authentication on page load
-function checkAuth() {
-    const token = localStorage.getItem('authToken');
-    const user = localStorage.getItem('currentUser');
-    
-    if (token && user) {
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('currentUser').textContent = user;
-        document.getElementById('currentUserInfo').textContent = user;
-        document.getElementById('loginTime').textContent = new Date().toLocaleString();
-        loadAgreements();
-        loadSystemSettings();
-    }
-}
-
-// Tab management
-function showTab(tabName, element) {
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
+    console.log('Login successful for user:', username);
+    res.json({ 
+      message: 'Login successful',
+      user: userResponse
     });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Server error during authentication' });
+  }
+});
+
+// Protected routes middleware
+app.use('/api/agreements', authenticateToken);
+app.use('/api/users', authenticateToken);
+app.use('/api/activity-logs', authenticateToken);
+app.use('/api/settings', authenticateToken);
+app.use('/api/backup', authenticateToken);
+
+// Agreements CRUD (your existing code)
+app.get('/api/agreements', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 25;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(
+      'SELECT * FROM agreements ORDER BY created_at DESC LIMIT $1 OFFSET $2;',
+      [limit, offset]
+    );
     
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
+    const countResult = await pool.query('SELECT COUNT(*) FROM agreements;');
+    const totalCount = parseInt(countResult.rows[0].count);
+
+    res.json({
+      agreements: result.rows,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
     });
-    
-    document.getElementById(tabName).classList.add('active');
-    element.classList.add('active');
-    
-    loadTabData(tabName);
-}
+  } catch (err) {
+    console.error('Fetch agreements error:', err);
+    res.status(500).json({ error: 'Failed to fetch agreements' });
+  }
+});
 
-// Load tab-specific data
-async function loadTabData(tabName) {
+// Reports Endpoint
+app.get('/api/reports', async (req, res) => {
     try {
-        switch(tabName) {
-            case 'agreements':
-                await loadAgreements();
-                break;
-            case 'reports':
-                await loadAgentsForReports();
-                break;
-            case 'logs':
-                await loadActivityLogs();
-                break;
-            case 'settings':
-                await loadSystemSettings();
-                await loadUsers();
-                break;
+        let query = 'SELECT * FROM agreements';
+        const params = [];
+        let whereClauses = [];
+
+        // Filter by Agent
+        if (req.query.agentName) {
+            params.push(req.query.agentName);
+            whereClauses.push(`agent_name = $${params.length}`);
         }
-    } catch (error) {
-        console.error(`Error loading ${tabName} data:`, error);
+
+        // Filter by Expiring Agreements
+        if (req.query.expiryFromDate && req.query.expiryToDate) {
+            params.push(req.query.expiryFromDate);
+            whereClauses.push(`expiry_date >= $${params.length}`);
+            params.push(req.query.expiryToDate);
+            whereClauses.push(`expiry_date <= $${params.length}`);
+        }
+
+        // Filter by Pending Amount
+        if (req.query.pendingAmount) {
+            if (req.query.pendingAmount === 'greater') {
+                whereClauses.push('payment_due > 0');
+            } else if (req.query.pendingAmount === 'less') {
+                whereClauses.push('payment_due < 0');
+            }
+        }
+        
+        if (whereClauses.length > 0) {
+            query += ' WHERE ' + whereClauses.join(' AND ');
+        }
+        
+        query += ' ORDER BY created_at DESC;';
+
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error('Report generation error:', err);
+        res.status(500).json({ error: 'Failed to generate report' });
     }
-}
+});
 
-// Notification function
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.className = `notification ${type}`;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
-}
+// --- User Management Endpoints ---
 
-// Profit calculation function
-function calculateProfit() {
-    const totalPayment = parseFloat(document.getElementById('totalPayment').value) || 0;
-    const actualCost = parseFloat(document.getElementById('actualCost').value) || 0;
-    const agentCommission = parseFloat(document.getElementById('agentCommission').value) || 0;
-    const otherExpenses = parseFloat(document.getElementById('otherExpenses').value) || 0;
+// GET all users (Admin only)
+app.get('/api/users', authenticateToken, checkAdmin, async (req, res) => {
+    try {
+        // Exclude password hash from the response for security
+        const result = await pool.query('SELECT id, username, role, created_at FROM users ORDER BY username;');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Fetch users error:', err);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+// POST a new user (Admin only)
+app.post('/api/users', authenticateToken, checkAdmin, async (req, res) => {
+    const { username, password, role } = req.body;
+    if (!username || !password || !role) {
+        return res.status(400).json({ error: 'Username, password, and role are required' });
+    }
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const result = await pool.query(
+            'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role;',
+            [username, hashedPassword, role]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error('Add user error:', err);
+        if (err.code === '23505') { // Unique constraint violation
+            return res.status(409).json({ error: 'Username already exists' });
+        }
+        res.status(500).json({ error: 'Failed to add user' });
+    }
+});
+
+// DELETE a user (Admin only)
+app.delete('/api/users/:id', authenticateToken, checkAdmin, async (req, res) => {
+    const { id } = req.params;
+    // Prevent admin from deleting themselves
+    if (parseInt(id, 10) === req.user.id) {
+        return res.status(400).json({ error: 'Admin cannot delete their own account.' });
+    }
+    try {
+        await pool.query('DELETE FROM users WHERE id = $1;', [id]);
+        res.status(204).send(); // No content
+    } catch (err) {
+        console.error('Delete user error:', err);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
+// PUT (update) current user's password
+app.put('/api/auth/change-password', authenticateToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current and new passwords are required.' });
+    }
+    try {
+        const userResult = await pool.query('SELECT password FROM users WHERE id = $1;', [userId]);
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        
+        const user = userResult.rows[0];
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Invalid current password.' });
+        }
+
+        const newHashedPassword = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE users SET password = $1 WHERE id = $2;', [newHashedPassword, userId]);
+
+        res.json({ message: 'Password updated successfully.' });
+    } catch (err) {
+        console.error('Change password error:', err);
+        res.status(500).json({ error: 'Failed to change password' });
+    }
+});
+
+// Profit Report Endpoint (more complex, so it gets its own route)
+app.get('/api/reports/profit', async (req, res) => {
+    try {
+        let detailsQuery = `
+            SELECT agent_name, owner_name, token_number, total_payment, actual_cost, agent_commission, other_expenses, net_profit, profit_margin 
+            FROM agreements
+        `;
+        let summaryQuery = `
+            SELECT 
+                SUM(total_payment) as total_revenue,
+                SUM(net_profit) as total_profit,
+                AVG(profit_margin) as average_margin
+            FROM agreements
+        `;
+        
+        const params = [];
+        let whereClauses = [];
+
+        if (req.query.fromDate && req.query.toDate) {
+            params.push(req.query.fromDate);
+            whereClauses.push(`agreement_date >= $${params.length}`);
+            params.push(req.query.toDate);
+            whereClauses.push(`agreement_date <= $${params.length}`);
+        }
+        if (req.query.agentName) {
+            params.push(req.query.agentName);
+            whereClauses.push(`agent_name = $${params.length}`);
+        }
+
+        if (whereClauses.length > 0) {
+            const whereString = ' WHERE ' + whereClauses.join(' AND ');
+            detailsQuery += whereString;
+            summaryQuery += whereString;
+        }
+
+        const detailsResult = await pool.query(detailsQuery, params);
+        const summaryResult = await pool.query(summaryQuery, params);
+        
+        // Query for the most profitable agent separately
+        const topAgentQuery = `
+            SELECT agent_name, SUM(net_profit) as total_profit 
+            FROM agreements 
+            ${whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : ''}
+            GROUP BY agent_name ORDER BY total_profit DESC LIMIT 1;
+        `;
+        const topAgentResult = await pool.query(topAgentQuery, params);
+        
+        res.json({
+            details: detailsResult.rows,
+            summary: summaryResult.rows[0],
+            topAgent: topAgentResult.rows.length > 0 ? topAgentResult.rows[0].agent_name : '-'
+        });
+    } catch (err) {
+        console.error('Profit report error:', err);
+        res.status(500).json({ error: 'Failed to generate profit report' });
+    }
+});
+
+app.post('/api/agreements', async (req, res) => {
+  const data = req.body;
+  try {
+    // Check token uniqueness
+    const tokenCheck = await pool.query(
+      'SELECT COUNT(*) FROM agreements WHERE token_number = $1;',
+      [data.tokenNumber]
+    );
     
+    if (parseInt(tokenCheck.rows[0].count) > 0) {
+      return res.status(400).json({ error: 'Token number already exists' });
+    }
+
+    // Calculate financials
+    const totalPayment = parseFloat(data.totalPayment) || 0;
+    const actualCost = parseFloat(data.actualCost) || 0;
+    const agentCommission = parseFloat(data.agentCommission) || 0;
+    const otherExpenses = parseFloat(data.otherExpenses) || 0;
     const grossProfit = totalPayment - actualCost;
     const netProfit = grossProfit - agentCommission - otherExpenses;
     const profitMargin = totalPayment > 0 ? (netProfit / totalPayment) * 100 : 0;
+
+    const insertQuery = `
+      INSERT INTO agreements (
+        owner_name, location, token_number, agreement_date, owner_contact, tenant_contact,
+        email, expiry_date, reminder_date, cc_email, agent_name,
+        total_payment, payment_owner, payment_tenant, payment_due, agreement_status,
+        biometric_date, actual_cost, agent_commission, other_expenses,
+        gross_profit, net_profit, profit_margin
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+      RETURNING *;
+    `;
     
-    document.getElementById('grossProfit').value = grossProfit.toFixed(2);
-    document.getElementById('netProfit').value = netProfit.toFixed(2);
-    document.getElementById('profitMargin').value = profitMargin.toFixed(2);
-}
-
-// Calculate due amount
-function calculateDue() {
-    const total = parseFloat(document.getElementById('totalPayment').value) || 0;
-    const owner = parseFloat(document.getElementById('paymentOwner').value) || 0;
-    const tenant = parseFloat(document.getElementById('paymentTenant').value) || 0;
-    const due = total - owner - tenant;
-    document.getElementById('paymentDue').value = due.toFixed(2);
-    calculateProfit(); // Recalculate profit when payment changes
-}
-
-// Load agreements
-async function loadAgreements() {
-    try {
-        const response = await apiCall('/agreements');
-        const agreements = await response.json();
-        displayAgreements(agreements.agreements || agreements);
-    } catch (error) {
-        console.error('Error loading agreements:', error);
-        showNotification('Error loading agreements', 'error');
-    }
-}
-
-// Display agreements
-function displayAgreements(agreements) {
-    const tbody = document.querySelector('#agreementsTable tbody');
-    tbody.innerHTML = '';
-
-    if (!agreements || agreements.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="11" style="text-align: center; padding: 20px; color: #666;">
-                    No agreements found. Click "Add Agreement" to create your first agreement.
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    agreements.forEach(agreement => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${escapeHtml(agreement.owner_name || '-')}</td>
-            <td>${escapeHtml(agreement.location || '-')}</td>
-            <td>${escapeHtml(agreement.token_number || '-')}</td>
-            <td>${escapeHtml(agreement.owner_contact || '-')}</td>
-            <td>${escapeHtml(agreement.tenant_contact || '-')}</td>
-            <td>${escapeHtml(agreement.agent_name || '-')}</td>
-            <td>${formatCurrency(agreement.total_payment || 0)}</td>
-            <td>${formatCurrency(agreement.payment_due || 0)}</td>
-            <td>${escapeHtml(agreement.agreement_status || '-')}</td>
-            <td>${formatDate(agreement.expiry_date)}</td>
-            <td>
-                <button class="btn btn-warning" onclick="editAgreement(${agreement.id})" style="padding: 5px 10px; font-size: 12px;">Edit</button>
-                <button class="btn btn-danger" onclick="deleteAgreement(${agreement.id})" style="padding: 5px 10px; font-size: 12px;">Delete</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-// Collect agreement data from form
-function collectAgreementData() {
-    return {
-        ownerName: document.getElementById('ownerName').value,
-        location: document.getElementById('location').value,
-        tokenNumber: document.getElementById('tokenNumber').value,
-        agreementDate: document.getElementById('agreementDate').value,
-        ownerContact: document.getElementById('ownerContact').value,
-        tenantContact: document.getElementById('tenantContact').value,
-        email: document.getElementById('email').value,
-        expiryDate: document.getElementById('expiryDate').value,
-        reminderDate: document.getElementById('reminderDate').value,
-        ccEmail: document.getElementById('ccEmail').value,
-        agentName: document.getElementById('agentName').value,
-        totalPayment: parseFloat(document.getElementById('totalPayment').value) || 0,
-        paymentOwner: parseFloat(document.getElementById('paymentOwner').value) || 0,
-        paymentTenant: parseFloat(document.getElementById('paymentTenant').value) || 0,
-        paymentDue: parseFloat(document.getElementById('paymentDue').value) || 0,
-        agreementStatus: document.getElementById('agreementStatus').value,
-        biometricDate: document.getElementById('biometricDate').value,
-        actualCost: parseFloat(document.getElementById('actualCost').value) || 0,
-        agentCommission: parseFloat(document.getElementById('agentCommission').value) || 0,
-        otherExpenses: parseFloat(document.getElementById('otherExpenses').value) || 0
-    };
-}
-
-// Save agreement
-async function saveAgreement() {
-    try {
-        const agreementData = collectAgreementData();
-        
-        if (!agreementData.tokenNumber) {
-            showNotification('Token number is required', 'error');
-            return;
-        }
-
-        showNotification('Saving agreement...', 'warning');
-        
-        const response = await apiCall('/agreements', {
-            method: 'POST',
-            body: JSON.stringify(agreementData)
-        });
-
-        if (response.ok) {
-            showNotification('Agreement saved successfully!', 'success');
-            clearForm();
-            await loadAgreements();
-        }
-    } catch (error) {
-        console.error('Save agreement error:', error);
-        showNotification(error.message || 'Error saving agreement', 'error');
-    }
-}
-
-// Clear form
-function clearForm() {
-    document.querySelectorAll('#agreements input, #agreements select').forEach(element => {
-        if (element.id !== 'ccEmail' && !element.readOnly) {
-            element.value = '';
-        }
-    });
-}
-
-// Delete agreement
-async function deleteAgreement(id) {
-    if (!confirm('Are you sure you want to delete this agreement?')) {
-        return;
-    }
-
-    try {
-        const response = await apiCall(`/agreements/${id}`, {
-            method: 'DELETE'
-        });
-
-        if (response.ok) {
-            showNotification('Agreement deleted successfully!', 'success');
-            await loadAgreements();
-        }
-    } catch (error) {
-        showNotification('Error deleting agreement', 'error');
-    }
-}
-
-// Edit agreement functionality
-let currentEditId = null;
-
-async function editAgreement(id) {
-    try {
-        const response = await apiCall(`/agreements/${id}`);
-        const agreement = await response.json();
-        
-        currentEditId = id;
-        
-        // Populate edit form
-        document.getElementById('editFormGrid').innerHTML = `
-            <div class="form-field">
-                <label>Owner Name</label>
-                <input type="text" id="editOwnerName" value="${escapeHtml(agreement.owner_name || '')}">
-            </div>
-            <div class="form-field">
-                <label>Token Number</label>
-                <input type="text" id="editTokenNumber" value="${escapeHtml(agreement.token_number || '')}">
-            </div>
-            <div class="form-field">
-                <label>Total Payment</label>
-                <input type="number" id="editTotalPayment" value="${agreement.total_payment || 0}">
-            </div>
-            <!-- Add more fields as needed -->
-        `;
-        
-        document.getElementById('editModal').style.display = 'block';
-    } catch (error) {
-        showNotification('Error loading agreement details', 'error');
-    }
-}
-
-async function saveEditedAgreement() {
-    if (!currentEditId) return;
+    const params = [
+      data.ownerName, data.location, data.tokenNumber, data.agreementDate || null,
+      data.ownerContact, data.tenantContact, data.email, data.expiryDate || null,
+      data.reminderDate || null, data.ccEmail, data.agentName,
+      totalPayment, parseFloat(data.paymentOwner) || 0, parseFloat(data.paymentTenant) || 0, 
+      parseFloat(data.paymentDue) || 0, data.agreementStatus, data.biometricDate || null,
+      actualCost, agentCommission, otherExpenses, grossProfit, netProfit, profitMargin
+    ];
     
-    try {
-        const updatedData = {
-            ownerName: document.getElementById('editOwnerName').value,
-            tokenNumber: document.getElementById('editTokenNumber').value,
-            totalPayment: parseFloat(document.getElementById('editTotalPayment').value) || 0
-            // Add more fields as needed
-        };
-        
-        const response = await apiCall(`/agreements/${currentEditId}`, {
-            method: 'PUT',
-            body: JSON.stringify(updatedData)
-        });
-        
-        if (response.ok) {
-            showNotification('Agreement updated successfully!', 'success');
-            closeEditModal();
-            await loadAgreements();
-        }
-    } catch (error) {
-        showNotification('Error updating agreement', 'error');
-    }
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-    currentEditId = null;
-}
-
-// Report functions
-async function generateProfitReport() {
-    try {
-        const fromDate = document.getElementById('profitFromDate').value;
-        const toDate = document.getElementById('profitToDate').value;
-        const agent = document.getElementById('profitAgentFilter').value;
-        
-        if (!fromDate || !toDate) {
-            showNotification('Please select both from and to dates', 'error');
-            return;
-        }
-        
-        let url = `/reports/profit?from=${fromDate}&to=${toDate}`;
-        if (agent) url += `&agent=${encodeURIComponent(agent)}`;
-        
-        const response = await apiCall(url);
-        const agreements = await response.json();
-        
-        displayReportResults(agreements);
-        
-        // Calculate summary
-        const totalRevenue = agreements.reduce((sum, ag) => sum + parseFloat(ag.total_payment || 0), 0);
-        const totalProfit = agreements.reduce((sum, ag) => sum + parseFloat(ag.net_profit || 0), 0);
-        const avgMargin = agreements.length > 0 ? (totalProfit / totalRevenue) * 100 : 0;
-        
-        document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
-        document.getElementById('totalProfit').textContent = formatCurrency(totalProfit);
-        document.getElementById('averageMargin').textContent = avgMargin.toFixed(1) + '%';
-        document.getElementById('profitSummary').style.display = 'grid';
-        
-    } catch (error) {
-        showNotification('Error generating profit report', 'error');
-    }
-}
-
-function displayReportResults(agreements) {
-    const table = document.getElementById('reportTable');
-    const tbody = table.querySelector('tbody');
-    const noResults = document.getElementById('noResults');
+    const result = await pool.query(insertQuery, params);
     
-    tbody.innerHTML = '';
-    
-    if (!agreements || agreements.length === 0) {
-        table.style.display = 'none';
-        noResults.style.display = 'block';
-        return;
-    }
-    
-    table.style.display = 'table';
-    noResults.style.display = 'none';
-    
-    agreements.forEach(agreement => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${escapeHtml(agreement.owner_name || '-')}</td>
-            <td>${escapeHtml(agreement.token_number || '-')}</td>
-            <td>${escapeHtml(agreement.location || '-')}</td>
-            <td>${formatCurrency(agreement.total_payment || 0)}</td>
-            <td>${formatCurrency(agreement.payment_due || 0)}</td>
-            <td>${escapeHtml(agreement.agent_name || '-')}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
+    // Log the activity
+    await pool.query(
+      'INSERT INTO activity_logs (username, action, details, ip_address) VALUES ($1, $2, $3, $4);',
+      [req.user.username, 'CREATE_AGREEMENT', `Created agreement with token: ${data.tokenNumber}`, req.ip]
+    );
 
-// User management
-async function addNewUser(event) {
-    event.preventDefault();
-    
-    try {
-        const username = document.getElementById('newUsername').value;
-        const password = document.getElementById('newUserPassword').value;
-        const role = document.getElementById('newUserRole').value;
-        
-        const response = await apiCall('/users', {
-            method: 'POST',
-            body: JSON.stringify({ username, password, role })
-        });
-        
-        if (response.ok) {
-            showNotification('User added successfully!', 'success');
-            event.target.reset();
-            await loadUsers();
-        }
-    } catch (error) {
-        showNotification('Error adding user', 'error');
-    }
-}
-
-async function loadUsers() {
-    try {
-        const response = await apiCall('/users');
-        const users = await response.json();
-        
-        const tbody = document.querySelector('#usersTable tbody');
-        tbody.innerHTML = '';
-        
-        users.forEach(user => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${escapeHtml(user.username)}</td>
-                <td>${escapeHtml(user.role)}</td>
-                <td>${formatDate(user.created_at)}</td>
-                <td>
-                    <button class="btn btn-danger" onclick="deleteUser(${user.id})" style="padding: 3px 8px; font-size: 11px;">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-        
-        document.getElementById('userListContainer').style.display = 'block';
-    } catch (error) {
-        console.error('Error loading users:', error);
-    }
-}
-
-async function deleteUser(userId) {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    
-    try {
-        const response = await apiCall(`/users/${userId}`, {
-            method: 'DELETE'
-        });
-        
-        if (response.ok) {
-            showNotification('User deleted successfully!', 'success');
-            await loadUsers();
-        }
-    } catch (error) {
-        showNotification('Error deleting user', 'error');
-    }
-}
-
-function showUserList() {
-    loadUsers();
-}
-
-// Settings management
-async function loadSystemSettings() {
-    try {
-        const response = await apiCall('/settings');
-        const settings = await response.json();
-        
-        if (settings.default_cc_email) {
-            document.getElementById('defaultCCEmail').value = settings.default_cc_email;
-            document.getElementById('ccEmail').value = settings.default_cc_email;
-        }
-        if (settings.company_name) document.getElementById('companyName').value = settings.company_name;
-        if (settings.reminder_days_before) document.getElementById('reminderDaysBefore').value = settings.reminder_days_before;
-        if (settings.date_format) document.getElementById('dateFormat').value = settings.date_format;
-        if (settings.currency_symbol) document.getElementById('currencySymbol').value = settings.currency_symbol;
-        if (settings.max_records_per_page) document.getElementById('maxRecordsPerPage').value = settings.max_records_per_page;
-        if (settings.session_timeout) document.getElementById('sessionTimeout').value = settings.session_timeout;
-        
-    } catch (error) {
-        console.error('Error loading settings:', error);
-    }
-}
-
-async function saveSystemSettings() {
-    try {
-        const settings = {
-            default_cc_email: document.getElementById('defaultCCEmail').value,
-            company_name: document.getElementById('companyName').value,
-            reminder_days_before: parseInt(document.getElementById('reminderDaysBefore').value),
-            date_format: document.getElementById('dateFormat').value,
-            currency_symbol: document.getElementById('currencySymbol').value,
-            max_records_per_page: parseInt(document.getElementById('maxRecordsPerPage').value),
-            session_timeout: parseInt(document.getElementById('sessionTimeout').value)
-        };
-        
-        const response = await apiCall('/settings', {
-            method: 'PUT',
-            body: JSON.stringify(settings)
-        });
-        
-        if (response.ok) {
-            showNotification('Settings saved successfully!', 'success');
-        }
-    } catch (error) {
-        showNotification('Error saving settings', 'error');
-    }
-}
-
-// Utility functions
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function formatCurrency(amount) {
-    return `₹${parseFloat(amount).toFixed(2)}`;
-}
-
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN');
-}
-
-// Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
-    checkAuth();
-    document.getElementById('buildDate').textContent = new Date().toISOString().split('T')[0];
-    
-    // Set default dates for reports
-    const today = new Date().toISOString().split('T')[0];
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-    const oneMonthAgoStr = oneMonthAgo.toISOString().split('T')[0];
-    
-    document.getElementById('profitFromDate').value = oneMonthAgoStr;
-    document.getElementById('profitToDate').value = today;
-    document.getElementById('expiryFromDate').value = today;
-    
-    const threeMonthsLater = new Date();
-    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
-    document.getElementById('expiryToDate').value = threeMonthsLater.toISOString().split('T')[0];
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Save agreement error:', err);
+    res.status(500).json({ error: 'Failed to save agreement' });
+  }
 });
 
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('editModal');
-    if (event.target === modal) {
-        closeEditModal();
+// GET a single agreement by ID
+app.get('/api/agreements/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('SELECT * FROM agreements WHERE id = $1;', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Agreement not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Fetch single agreement error:', err);
+        res.status(500).json({ error: 'Failed to fetch agreement' });
     }
-}
-</script>
+});
+
+// PUT (update) an agreement by ID
+app.put('/api/agreements/:id', async (req, res) => {
+    const { id } = req.params;
+    const data = req.body;
+    try {
+        // Optional: Check if the token number is being changed to one that already exists
+        const tokenCheck = await pool.query(
+            'SELECT id FROM agreements WHERE token_number = $1 AND id != $2;',
+            [data.tokenNumber, id]
+        );
+
+        if (tokenCheck.rows.length > 0) {
+            return res.status(400).json({ error: 'Another agreement with this token number already exists.' });
+        }
+
+        // Recalculate financial fields
+        const totalPayment = parseFloat(data.totalPayment) || 0;
+        const actualCost = parseFloat(data.actualCost) || 0;
+        const agentCommission = parseFloat(data.agentCommission) || 0;
+        const otherExpenses = parseFloat(data.otherExpenses) || 0;
+        const grossProfit = totalPayment - actualCost;
+        const netProfit = grossProfit - agentCommission - otherExpenses;
+        const profitMargin = totalPayment > 0 ? (netProfit / totalPayment) * 100 : 0;
+
+        const updateQuery = `
+            UPDATE agreements SET
+                owner_name = $1, location = $2, token_number = $3, agreement_date = $4,
+                owner_contact = $5, tenant_contact = $6, email = $7, expiry_date = $8,
+                reminder_date = $9, cc_email = $10, agent_name = $11, total_payment = $12,
+                payment_owner = $13, payment_tenant = $14, payment_due = $15, agreement_status = $16,
+                biometric_date = $17, actual_cost = $18, agent_commission = $19, other_expenses = $20,
+                gross_profit = $21, net_profit = $22, profit_margin = $23
+            WHERE id = $24
+            RETURNING *;
+        `;
+        
+        const params = [
+            data.ownerName, data.location, data.tokenNumber, data.agreementDate || null,
+            data.ownerContact, data.tenantContact, data.email, data.expiryDate || null,
+            data.reminderDate || null, data.ccEmail, data.agentName,
+            totalPayment, parseFloat(data.paymentOwner) || 0, parseFloat(data.paymentTenant) || 0, 
+            parseFloat(data.paymentDue) || 0, data.agreementStatus, data.biometricDate || null,
+            actualCost, agentCommission, otherExpenses, grossProfit, netProfit, profitMargin,
+            id
+        ];
+
+        const result = await pool.query(updateQuery, params);
+
+        // Log the activity
+        await pool.query(
+            'INSERT INTO activity_logs (username, action, details, ip_address) VALUES ($1, $2, $3, $4);',
+            [req.user.username, 'UPDATE_AGREEMENT', `Updated agreement with token: ${data.tokenNumber}`, req.ip]
+        );
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Update agreement error:', err);
+        res.status(500).json({ error: 'Failed to update agreement' });
+    }
+});
+
+
+// [Include all your other existing routes here...]
+// Agreements CRUD operations (GET by ID, PUT, DELETE)
+// Users endpoints
+// Agents endpoints
+// Activity logs
+// System settings
+// Reports endpoints
+// Backup & Restore
+
+// Health check endpoint (for Railway)
+app.get('/api/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ 
+      status: 'healthy', 
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    res.status(503).json({ 
+      status: 'unhealthy', 
+      database: 'disconnected',
+      error: err.message 
+    });
+  }
+});
+
+// PUT (update) system settings (Admin only)
+app.put('/api/settings', authenticateToken, checkAdmin, async (req, res) => {
+    const settings = req.body;
+    try {
+        const updateQuery = `
+            UPDATE system_settings SET
+                default_cc_email = $1,
+                company_name = $2,
+                reminder_days_before = $3,
+                date_format = $4,
+                currency_symbol = $5,
+                session_timeout = $6,
+                max_records_per_page = $7
+            WHERE id = 1
+            RETURNING *;
+        `;
+        const params = [
+            settings.defaultCCEmail,
+            settings.companyName,
+            parseInt(settings.reminderDaysBefore, 10),
+            settings.dateFormat,
+            settings.currencySymbol,
+            parseInt(settings.sessionTimeout, 10),
+            parseInt(settings.maxRecordsPerPage, 10)
+        ];
+
+        const result = await pool.query(updateQuery, params);
+        res.json(result.rows[0]);
+
+    } catch (err) {
+        console.error('Update settings error:', err);
+        res.status(500).json({ error: 'Failed to update system settings' });
+    }
+});
+
+// Root health check (simple)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', service: 'agreement-manager-api' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
+// Fallback: serve index.html for any other route (for SPA)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await pool.end();
+  process.exit(0);
+});
+
+// Start server (important for Railway: listen on 0.0.0.0)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
+});
