@@ -293,6 +293,39 @@
         .data-table tr:hover {
             background: #f8f9fa;
         }
+		
+		.data-table tr:hover {
+			background: #f8f9fa;
+		}
+
+		admin-only {
+			display: none !important;
+		}
+
+		.user-only {
+			display: none !important;
+		}
+
+		.agent-only {
+			display: none !important;
+		}
+	/* === ADD THIS CODE RIGHT HERE === */
+	/* Role-based visibility */
+	.admin-only {
+		display: none !important;
+	}
+
+	.user-only {
+		display: none !important;
+	}
+
+	.agent-only {
+		display: none !important;
+	}
+	/* === END OF ADDED CODE === */
+
+	/* Specific column widths for better display */
+	.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 15%; }
 
         /* Specific column widths for better display */
         .data-table th:nth-child(1), .data-table td:nth-child(1) { width: 15%; }
@@ -446,13 +479,9 @@
 
 			<div class="tabs">
 				<button class="tab active" onclick="showTab('agreements', this)">Agreements</button>
-				
 				<button class="tab admin-only" onclick="showTab('reports', this)">Reports</button>
-				
 				<button class="tab" onclick="showTab('whatsapp', this)">WhatsApp</button>
-				
 				<button class="tab" onclick="showTab('logs', this)">Activity Logs</button>
-				
 				<button class="tab admin-only" onclick="showTab('settings', this)">Settings</button>
 			</div>
 
@@ -1101,26 +1130,49 @@
 	// PASTE THIS ENTIRE FUNCTION INTO YOUR SCRIPT TAG
 
 	function updateUIVisibility() {
-		const userRole = localStorage.getItem('userRole');
-		console.log(`Updating UI for role: ${userRole}`);
-
-		// First, hide all elements that have a role-specific class
-		document.querySelectorAll('.admin-only').forEach(el => {
-			el.style.display = 'none';
-		});
-
-		// Now, show elements based on the user's role
-		if (userRole === 'admin') {
-			// Admins can see everything, so show all admin-only elements
+			const userRole = localStorage.getItem('userRole') || 'user';
+			console.log(`Updating UI for role: ${userRole}`);
+			
+			// Show/hide admin-only elements
 			document.querySelectorAll('.admin-only').forEach(el => {
-				// Use 'flex' or 'block' depending on the element's default display style
-				// For buttons in a flex container, 'block' or 'flex' works well.
-				el.style.display = 'block'; 
+				if (userRole === 'admin') {
+					el.style.display = 'block';
+				} else {
+					el.style.display = 'none';
+				}
 			});
+			
+			// Show/hide user-only elements
+			document.querySelectorAll('.user-only').forEach(el => {
+				if (userRole === 'user') {
+					el.style.display = 'block';
+				} else {
+					el.style.display = 'none';
+				}
+			});
+			
+			// Show/hide agent-only elements
+			document.querySelectorAll('.agent-only').forEach(el => {
+				if (userRole === 'agent') {
+					el.style.display = 'block';
+				} else {
+					el.style.display = 'none';
+				}
+			});
+			
+			// Ensure at least one tab is active
+			const activeTabs = document.querySelectorAll('.tab.active');
+			if (activeTabs.length === 0) {
+				// Activate the first visible tab
+				const firstVisibleTab = document.querySelector('.tab:not([style*="display: none"])');
+				if (firstVisibleTab) {
+					firstVisibleTab.click();
+				} else {
+					// Fallback: show agreements tab
+					showTab('agreements', document.querySelector('.tab'));
+				}
+			}
 		}
-		// If the role is 'user', we do nothing, so the admin-only elements remain hidden.
-		// You can add more 'else if' blocks here for other roles like 'agent'.
-}
 	
 	// Calculate profit fields on the form
 		function calculateProfit() {
@@ -1168,6 +1220,18 @@
 			throw error;
 		}
 	}
+	
+	function debugUIVisibility() {
+		console.log('=== UI Visibility Debug ===');
+		console.log('User Role:', localStorage.getItem('userRole'));
+		console.log('Admin-only elements:', document.querySelectorAll('.admin-only').length);
+		console.log('Visible admin-only elements:', document.querySelectorAll('.admin-only:not([style*="display: none"])').length);
+		console.log('Active tabs:', document.querySelectorAll('.tab.active').length);
+		
+		document.querySelectorAll('.tab').forEach((tab, index) => {
+			console.log(`Tab ${index}:`, tab.textContent, 'visible:', tab.offsetParent !== null);
+		});
+	}
     
     async function testConnection() {
         try {
@@ -1196,23 +1260,30 @@
 
     // Tab management
     function showTab(tabName, element) {
-        // Hide all tab contents
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Remove active class from all tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        
-        // Show selected tab content and set active tab
-        document.getElementById(tabName).classList.add('active');
-        element.classList.add('active');
-        
-        // Load tab-specific data if needed
-        loadTabData(tabName);
-    }
+		// Hide all tab contents
+		document.querySelectorAll('.tab-content').forEach(tab => {
+			tab.classList.remove('active');
+		});
+		
+		// Remove active class from all tabs
+		document.querySelectorAll('.tab').forEach(tab => {
+			tab.classList.remove('active');
+		});
+		
+		// Show selected tab content and set active tab
+		const tabContent = document.getElementById(tabName);
+		if (tabContent) {
+			tabContent.classList.add('active');
+			element.classList.add('active');
+			
+			// Load tab-specific data if needed
+			loadTabData(tabName);
+		} else {
+			console.error(`Tab content not found: ${tabName}`);
+			// Fallback to agreements tab
+			showTab('agreements', document.querySelector('.tab'));
+		}
+	}
 
     // Async function to load tab-specific data
     async function loadTabData(tabName) {
