@@ -421,25 +421,31 @@
                 flex-direction: column;
             }
 			
-			status-indicator {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: 600;
-            text-align: center;
-        }
+			.status-indicator {
+				margin: 10px 0;
+				padding: 10px;
+				border-radius: 5px;
+				font-weight: 600;
+				text-align: center;
+			}
 
-        .status-success { 
-            background: #d4edda; 
-            color: #155724; 
-            border: 1px solid #c3e6cb; 
-        }
+			.status-success { 
+				background: #d4edda; 
+				color: #155724; 
+				border: 1px solid #c3e6cb; 
+			}
 
-        .status-error { 
-            background: #f8d7da; 
-            color: #721c24; 
-            border: 1px solid #f5c6cb; 
-        }
+			.status-error { 
+				background: #f8d7da; 
+				color: #721c24; 
+				border: 1px solid #f5c6cb; 
+			}
+
+			.status-warning { 
+				background: #fff3cd; 
+				color: #856404; 
+				border: 1px solid #ffeaa7; 
+			}
 
     </style>
 </head>
@@ -465,6 +471,11 @@
 			<button type="submit" class="login-btn">Login</button>
 		</form>
     </div>
+
+	<div id="connectionStatus" class="status-indicator" style="margin: 10px 0; padding: 10px; border-radius: 5px; text-align: center; display: none;">
+		<span id="statusText">Checking connection...</span>
+	</div
+
 
     <!-- Main Application -->
     <div class="main-app" id="mainApp">
@@ -830,7 +841,9 @@
 
 							<div class="btn-group">
 								<button type="submit" class="btn btn-success">Add User</button>
-								<button type="button" class="btn btn-warning" onclick="showUserList()">Manage Users</button>
+								<button type="button" class="btn btn-warning" onclick="retryConnection()" style="margin-top: 10px; width: 100%;">
+									Retry Connection
+								</button>
 							</div>
 						</form>
 
@@ -1041,59 +1054,85 @@
 
     // Authentication functions
 		async function handleLogin(event) {
-			if (event) event.preventDefault();
+		if (event) event.preventDefault();
+		
+		const username = document.getElementById('username').value;
+		const password = document.getElementById('password').value;
+
+		if (!username || !password) {
+			showNotification('Please enter both username and password', 'error');
+			return;
+		}
+
+		try {
+			console.log('Attempting login for user:', username);
 			
-			const username = document.getElementById('username').value;
-			const password = document.getElementById('password').value;
+			const response = await fetch('/api/auth/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ username, password })
+			});
 
-			if (!username || !password) {
-				showNotification('Please enter both username and password', 'error');
-				return;
+			// Check if response is OK first
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error || `Login failed with status: ${response.status}`);
 			}
 
-			try {
-				console.log('Attempting login for user:', username);
-				
-				const response = await fetch('/api/auth/login', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ username, password })
-				});
+			const responseData = await response.json();
+			console.log('Login response:', responseData);
 
-				const responseData = await response.json();
-				console.log('Login response:', responseData);
-
-				if (response.ok) {
-					// Store user info and role from the server response
-					console.log('Full response data:', responseData); // Add this line
-					localStorage.setItem('authToken', responseData.user.token);
-					localStorage.setItem('currentUser', username);
-					localStorage.setItem('userRole', responseData.user.role);
-					
-					showNotification('Login successful!', 'success');
-					document.getElementById('loginContainer').style.display = 'none';
-					document.getElementById('mainApp').style.display = 'block';
-					
-					// --- THIS IS THE ADDED LINE ---
-					updateUIVisibility(); 
-					
-					document.getElementById('currentUser').textContent = username;
-					document.getElementById('currentUserInfo').textContent = username;
-					document.getElementById('loginTime').textContent = new Date().toLocaleString();
-					
-					// Load initial data
-					await loadAgreements();
-					await loadSystemSettings();
-				} else {
-					throw new Error(responseData.error || 'Login failed');
-				}
-			} catch (error) {
-				console.error('Login error:', error);
-				showNotification(error.message || 'Login failed. Please check credentials.', 'error');
+			// Handle different response structures
+			let authToken, userRole;
+			
+			if (responseData.token) {
+				// Structure 1: { token: "abc", user: { role: "admin" } }
+				authToken = responseData.token;
+				userRole = responseData.user?.role || 'user';
+			} else if (responseData.accessToken) {
+				// Structure 2: { accessToken: "abc", role: "admin" }
+				authToken = responseData.accessToken;
+				userRole = responseData.role || 'user';
+			} else if (responseData.user && responseData.user.token) {
+				// Structure 3: { user: { token: "abc", role: "admin" } }
+				authToken = responseData.user.token;
+				userRole = responseData.user.role || 'user';
+			} else {
+				throw new Error('Invalid response structure from server');
 			}
-}
+
+			if (!authToken) {
+				throw new Error('No authentication token received');
+			}
+
+			// Store authentication data
+			localStorage.setItem('authToken', authToken);
+			localStorage.setItem('currentUser', username);
+			localStorage.setItem('userRole', userRole);
+			
+			showNotification('Login successful!', 'success');
+			
+			// Update UI
+			document.getElementById('loginContainer').style.display = 'none';
+			document.getElementById('mainApp').style.display = 'block';
+			updateUIVisibility();
+			
+			document.getElementById('currentUser').textContent = username;
+			document.getElementById('currentUserInfo').textContent = username;
+			document.getElementById('loginTime').textContent = new Date().toLocaleString();
+			
+			// Load initial data
+			await loadAgreements();
+			await loadSystemSettings();
+			
+		} catch (error) {
+			console.error('Login error:', error);
+			showNotification(error.message || 'Login failed. Please check credentials.', 'error');
+		}
+	}
+	
     function logout() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('currentUser');
@@ -1189,38 +1228,83 @@
 			document.getElementById('netProfit').value = netProfit.toFixed(2);
 			document.getElementById('profitMargin').value = profitMargin.toFixed(2);
 		}
+		
+		async function retryConnection() {
+			const success = await testConnection();
+			if (success) {
+				showNotification('Connection restored!', 'success');
+			}
+}
 
-    async function apiCall(endpoint, options = {}) {
-		try {
-			const token = localStorage.getItem('authToken'); // Get the token from storage
+		async function apiCall(endpoint, options = {}) {
+			const token = localStorage.getItem('authToken');
 			const headers = {
 				'Content-Type': 'application/json',
 				...options.headers
 			};
 
-			// If a token exists, add it to the headers
 			if (token) {
 				headers['Authorization'] = `Bearer ${token}`;
 			}
 
-			const defaultOptions = { headers };
+			try {
+				const fullUrl = endpoint.startsWith('http') ? endpoint : `/api${endpoint}`;
+				console.log('API Call:', fullUrl, options.method || 'GET');
 
-			console.log('API Call:', endpoint);
-			const response = await fetch(`/api${endpoint}`, { ...options, ...defaultOptions });
-			
-			if (response.status === 401) {
-				logout();
-				throw new Error('Authentication required');
+				const response = await fetch(fullUrl, {
+					...options,
+					headers
+				});
+
+				if (response.status === 401) {
+					showNotification('Session expired. Please login again.', 'error');
+					logout();
+					throw new Error('Authentication required');
+				}
+
+				if (response.status === 404) {
+					console.warn('Endpoint not found:', fullUrl);
+					throw new Error('Service temporarily unavailable');
+				}
+
+				if (!response.ok) {
+					const errorText = await response.text();
+					let errorMessage = `Request failed with status ${response.status}`;
+					
+					try {
+						const errorData = JSON.parse(errorText);
+						errorMessage = errorData.error || errorData.message || errorMessage;
+					} catch {
+						errorMessage = errorText || errorMessage;
+					}
+					
+					throw new Error(errorMessage);
+				}
+
+				// For DELETE requests that might not return content
+				if (response.status === 204) {
+					return { success: true };
+				}
+
+				const contentType = response.headers.get('content-type');
+				if (contentType && contentType.includes('application/json')) {
+					return await response.json();
+				} else {
+					return await response.text();
+				}
+
+			} catch (error) {
+				console.error('API call error:', error);
+				
+				if (error.name === 'TypeError' && error.message.includes('fetch')) {
+					showNotification('Network error. Please check your connection.', 'error');
+				} else {
+					showNotification(error.message || 'Request failed. Please try again.', 'error');
+				}
+				
+				throw error;
 			}
-			
-			return response;
-		} catch (error) {
-			console.error('API call error:', error);
-			showNotification('Network error. Please try again.', 'error');
-			throw error;
 		}
-	}
-	
 	function debugUIVisibility() {
 		console.log('=== UI Visibility Debug ===');
 		console.log('User Role:', localStorage.getItem('userRole'));
@@ -1233,30 +1317,84 @@
 		});
 	}
     
-    async function testConnection() {
-        try {
-            const response = await fetch('/api/test');
-            const data = await response.json();
-            console.log('Connection test:', data);
-            return true;
-        } catch (error) {
-            console.error('Connection test failed:', error);
-            return false;
-        }
-    }
+		async function testConnection() {
+			const statusElement = document.getElementById('connectionStatus');
+			const statusText = document.getElementById('statusText');
+			
+			if (statusElement) {
+				statusElement.style.display = 'block';
+				statusElement.className = 'status-indicator status-warning';
+				statusText.textContent = 'Checking server connection...';
+			}
+
+			try {
+				const response = await fetch('/api/auth/status', {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					}
+				});
+
+				if (response.ok) {
+					if (statusElement) {
+						statusElement.className = 'status-indicator status-success';
+						statusText.textContent = '✅ Server connection successful';
+					}
+					return true;
+				} else {
+					throw new Error(`Server returned status: ${response.status}`);
+				}
+			} catch (error) {
+				console.error('Connection test failed:', error);
+				
+				if (statusElement) {
+					statusElement.className = 'status-indicator status-error';
+					statusText.textContent = '❌ Cannot connect to server';
+				}
+				
+				// Try alternative endpoints
+				return await tryAlternativeEndpoints();
+			}
+		}
+
+		async function tryAlternativeEndpoints() {
+			const endpoints = [
+				'/api/test',
+				'/api/health',
+				'/auth/status',
+				'/test'
+			];
+			
+			for (const endpoint of endpoints) {
+				try {
+					const response = await fetch(endpoint);
+					if (response.ok) {
+						console.log(`✅ Connected via alternative endpoint: ${endpoint}`);
+						return true;
+					}
+				} catch (error) {
+					console.log(`Endpoint ${endpoint} failed:`, error.message);
+				}
+			}
+			return false;
+		}
 
     // Test on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        testConnection().then(success => {
-            if (success) {
-                console.log('✅ Backend connection successful');
-            } else {
-                console.log('❌ Backend connection failed');
-                showNotification('Cannot connect to server. Please check if the backend is running.', 'error');
-            }
-            checkAuth();
-        });
-    });
+			document.addEventListener('DOMContentLoaded', function() {
+			// Test connection first
+			testConnection().then(success => {
+				if (success) {
+					console.log('✅ Backend connection successful');
+					// Only check auth if connection is successful
+					checkAuth();
+				} else {
+					console.log('❌ Backend connection failed');
+					showNotification('Cannot connect to server. Please check if the backend is running.', 'error');
+					// Still check auth in case we have cached credentials
+					checkAuth();
+				}
+			});
+		});
 
     // Tab management
     function showTab(tabName, element) {
