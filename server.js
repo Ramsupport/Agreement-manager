@@ -623,6 +623,57 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// --- System Settings Endpoints ---
+
+// GET system settings
+app.get('/api/settings', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM system_settings WHERE id = 1;');
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'System settings not found.' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Fetch settings error:', err);
+        res.status(500).json({ error: 'Failed to fetch system settings.' });
+    }
+});
+
+// PUT (update) system settings (Admin only)
+app.put('/api/settings', authenticateToken, checkAdmin, async (req, res) => {
+    const settings = req.body;
+    try {
+        const updateQuery = `
+            UPDATE system_settings SET
+                default_cc_email = $1,
+                company_name = $2,
+                reminder_days_before = $3,
+                date_format = $4,
+                currency_symbol = $5,
+                session_timeout = $6,
+                max_records_per_page = $7
+            WHERE id = 1
+            RETURNING *;
+        `;
+        const params = [
+            settings.defaultCCEmail,
+            settings.companyName,
+            parseInt(settings.reminderDaysBefore, 10),
+            settings.dateFormat,
+            settings.currencySymbol,
+            parseInt(settings.sessionTimeout, 10),
+            parseInt(settings.maxRecordsPerPage, 10)
+        ];
+
+        const result = await pool.query(updateQuery, params);
+        res.json(result.rows[0]);
+
+    } catch (err) {
+        console.error('Update settings error:', err);
+        res.status(500).json({ error: 'Failed to update system settings' });
+    }
+});
+
 // PUT (update) system settings (Admin only)
 app.put('/api/settings', authenticateToken, checkAdmin, async (req, res) => {
     const settings = req.body;
