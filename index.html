@@ -1,0 +1,1999 @@
+ <!DOCTYPE html>   
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	 <title>Agreement Manager - Cloud Application</title>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">  
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .connection-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .connected {
+            background-color: #27ae60;
+        }
+
+        .disconnected {
+            background-color: #e74c3c;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .main-container {
+            margin-top: 80px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1rem;
+        }
+
+        .tab-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: #34495e;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab-button.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            padding: 2rem;
+            min-height: 600px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .form-control {
+            padding: 0.5rem;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            border-radius: 5px;
+            overflow: auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+
+        .data-table th {
+            background: #e74c3c;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+		
+		button[onclick*="settings"],
+		button[onclick*="about"] {
+			display: inline-block !important;
+		}
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+        }
+
+        .login-form {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .role-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .role-badge.admin {
+            background: #27ae60;
+        }
+
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 3000;
+            animation: slideInRight 0.3s;
+        }
+
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .notification.warning {
+            background: #f39c12;
+        }
+
+        .notification.info {
+            background: #3498db;
+        }
+
+        .settings-section {
+            background: linear-gradient(135deg, #48b3c8, #52c87a);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 1rem;
+        }
+
+        .user-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .user-table th {
+            background: #3498db;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .user-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .role-tag {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .role-tag.admin {
+            background: #e74c3c;
+        }
+
+        .role-tag.user {
+            background: #3498db;
+        }
+
+        .role-tag.agent {
+            background: #16a085;
+        }
+
+        .role-tag.executive {
+            background: #f39c12;
+        }
+
+        .btn-add {
+            background: #27ae60;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .system-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .info-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .info-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .data-management {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .data-management .btn {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1rem;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(300px); }
+            to { transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .data-table {
+                font-size: 10px;
+            }
+			
+					.modal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0,0,0,0.5);
+			z-index: 2000;
+		}
+
+		.modal-content {
+			background: white;
+			margin: 10% auto;
+			padding: 2rem;
+			border-radius: 10px;
+			width: 90%;
+			max-width: 500px;
+			box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+		}
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-form">
+            <h1>Agreement Manager</h1>
+            <div class="form-group">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" class="form-control" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="Enter password">
+            </div>
+			
+         	<button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="login()">
+				Login
+			</button>
+            <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                <strong>Demo Credentials:</strong><br>
+                Admin: admin / admin123<br>
+                User: user1 / user123
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">Agreement Manager</div>
+                <div class="user-info">
+                    <div id="connectionStatus" class="connection-status connected">Online</div>
+                    <span id="currentUser">Admin</span>
+                    <div id="userRole" class="role-badge admin">Admin</div>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <div class="tab-container">
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+					<button class="tab-button active" onclick="showTab('agreements', event)">Agreements</button>
+					<button class="tab-button" onclick="showTab('reports', event)">Reports</button>
+					<button class="tab-button" onclick="showTab('profit', event)">Profit</button>
+					<button class="tab-button" onclick="showTab('backup', event)">Backup</button>
+					<button class="tab-button" onclick="showTab('settings', event)" id="settingsTab">Settings</button>
+					<button class="tab-button" onclick="showTab('about', event)">About</button>
+				</div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Agreements Tab -->
+                    <div id="agreements" class="tab-panel active">
+                        <h2>Agreement Management</h2>
+                        
+                        <!-- Agreement Form -->
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Name of Owner:</label>
+                                <input type="text" id="ownerName" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Location:</label>
+                                <input type="text" id="location" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Token Number:</label>
+                                <input type="text" id="tokenNumber" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Password:</label>
+                                <input type="text" id="password" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Agreement Date:</label>
+                                <input type="date" id="agreementDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Owner Contact:</label>
+                                <input type="tel" id="ownerContact" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Tenant Contact:</label>
+                                <input type="tel" id="tenantContact" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Email:</label>
+                                <input type="email" id="email" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Expiry Date:</label>
+                                <input type="date" id="expiryDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Reminder Date:</label>
+                                <input type="date" id="reminderDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>CC Email:</label>
+                                <input type="email" id="ccEmail" class="form-control" value="support@ramnathshetty.com" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Staff Name:</label>
+                                <input type="text" id="staffName" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Payment:</label>
+                                <input type="number" id="totalPayment" class="form-control" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Received from Owner:</label>
+                                <input type="number" id="ownerPayment" class="form-control" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Date 1:</label>
+                                <input type="date" id="paymentDate1" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Date 2:</label>
+                                <input type="date" id="paymentDate2" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Received from Tenant:</label>
+                                <input type="number" id="tenantPayment" class="form-control" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Due:</label>
+                                <input type="number" id="paymentDue" class="form-control" step="0.01" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Sent Reminder:</label>
+                                <select id="sentReminder" class="form-control">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Agreement Status:</label>
+                                <select id="agreementStatus" class="form-control">
+                                    <option value="Drafted">Drafted</option>
+                                    <option value="Sent to Client">Sent to Client</option>
+                                    <option value="Biometric Scheduled">Biometric Scheduled</option>
+                                    <option value="Biometrics Completed">Biometrics Completed</option>
+                                    <option value="Send Final Draft to Client">Send Final Draft to Client</option>
+                                    <option value="Submitted">Submitted</option>
+                                    <option value="Registered">Registered</option>
+                                    <option value="Registered agreement sent to the client">Registered agreement sent to the client</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Agent Name:</label>
+                                <select id="agentName" class="form-control">
+                                    <option value="">Select Agent</option>
+                                    <option value="Ramnath">Ramnath</option>
+                                    <option value="Agent 1">Agent 1</option>
+                                    <option value="Agent 2">Agent 2</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Biometric Scheduled Date:</label>
+                                <input type="date" id="biometricDate" class="form-control">
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="button-group">
+                            <button onclick="addAgreement()" class="btn btn-primary">Add Agreement</button>
+                            <button onclick="clearForm()" class="btn btn-secondary">Clear Form</button>
+                            <button onclick="updateAgreement()" class="btn btn-success" id="updateBtn" style="display: none;">Update Agreement</button>
+                        </div>
+
+                        <!-- Filter Section -->
+                        <div class="filter-section">
+                            <label>Filter by:</label>
+                            <select id="filterType" class="form-control" style="width: 150px;">
+                                <option value="all">All</option>
+                                <option value="name">Name of Owner</option>
+                                <option value="location">Location</option>
+                                <option value="agent">Agent Name</option>
+                                <option value="status">Status</option>
+                                <option value="token">Token Number</option>
+                            </select>
+                            <input type="text" id="filterValue" class="form-control" placeholder="Enter filter value..." style="width: 200px;">
+                            <button onclick="applyFilter()" class="btn btn-primary">Apply Filter</button>
+                            <button onclick="resetFilter()" class="btn btn-secondary">Reset Filter</button>
+                        </div>
+
+                        <!-- Agreements Table -->
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" id="agreementsTable">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                                        <th>ID</th>
+                                        <th>Name of Owner</th>
+                                        <th>Location</th>
+                                        <th>Token Number</th>
+                                        <th>Password</th>
+                                        <th>Owner Contact</th>
+                                        <th>Tenant Contact</th>
+                                        <th>Email</th>
+                                        <th>Expiry Date</th>
+                                        <th>Reminder Date</th>
+                                        <th>CC Email</th>
+                                        <th>Staff Name</th>
+                                        <th>Total Payment</th>
+                                        <th>Amount Received from Owner</th>
+                                        <th>Payment Date 1</th>
+                                        <th>Payment Date 2</th>
+                                        <th>Amount Received from Tenant</th>
+                                        <th>Payment Due</th>
+                                        <th>Sent Reminder</th>
+                                        <th>Agreement Status</th>
+                                        <th>Agent Name</th>
+                                        <th>Biometric Scheduled Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="agreementsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="button-group">
+                            <button onclick="deleteSelected()" class="btn btn-danger">Delete Selected</button>
+                            <button onclick="exportToExcel()" class="btn btn-info">Export for Excel</button>
+                            <button onclick="sendReminders()" class="btn btn-warning">Send Reminders</button>
+                        </div>
+                    </div>
+
+                    <!-- Reports Tab -->
+                    <div id="reports" class="tab-panel">
+                        <h2>Select a filter to generate a report:</h2>
+                        
+                        <!-- Filter by Agent -->
+                        <div class="settings-section">
+                            <h4>Filter by Agent</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>Agent Name:</label>
+                                <select id="reportAgent" class="form-control" style="width: 200px;">
+                                    <option value="">Select Agent</option>
+                                    <option value="Ramnath">Ramnath</option>
+                                    <option value="Agent 1">Agent 1</option>
+                                    <option value="Agent 2">Agent 2</option>
+                                </select>
+                                <button onclick="generateReportByAgent()" class="btn btn-primary">Generate Report by Agent</button>
+                                <button onclick="clearAgentFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Filter by Owner -->
+                        <div class="settings-section">
+                            <h4>Filter by Owner</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>Owner Name:</label>
+                                <select id="reportOwner" class="form-control" style="width: 200px;">
+                                    <option value="">Select Owner</option>
+                                </select>
+                                <button onclick="generateReportByOwner()" class="btn btn-primary">Generate Report by Owner</button>
+                                <button onclick="clearOwnerFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Expiring Agreements -->
+                        <div class="settings-section">
+                            <h4>Expiring Agreements</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>From:</label>
+                                <input type="date" id="expiryFromDate" class="form-control" style="width: 150px;">
+                                <label>To:</label>
+                                <input type="date" id="expiryToDate" class="form-control" style="width: 150px;">
+                                <button onclick="generateExpiringReport()" class="btn btn-primary">Generate Expiring Agreements Report</button>
+                                <button onclick="clearExpiryFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Filter by Pending Amount -->
+                        <div class="settings-section">
+                            <h4>Filter by Pending Amount</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>Pending Amount:</label>
+                                <select id="pendingAmountFilter" class="form-control" style="width: 200px;">
+                                    <option value="">Select Condition</option>
+                                    <option value="greater">Greater than zero</option>
+                                    <option value="less">Less than zero</option>
+                                </select>
+                                <button onclick="generatePendingReport()" class="btn btn-primary">Generate Pending Report</button>
+                                <button onclick="clearPendingFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Report Results Table -->
+                        <div style="overflow-x: auto; margin-top: 2rem;">
+                            <table class="data-table" id="reportTable" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>Name of Owner</th>
+                                        <th>Token Number</th>
+                                        <th>Location</th>
+                                        <th>Payment Due</th>
+                                        <th>Agent Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Export Report Button -->
+                        <div class="button-group">
+                            <button onclick="exportReport()" class="btn btn-success">Export Report to Excel</button>
+                        </div>
+                    </div>
+
+                    <!-- Profit Tab -->
+                    <div id="profit" class="tab-panel">
+                        <h2>Profit Management</h2>
+
+                        <!-- Profit Summary -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalRevenue">₹0.00</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalExpenses">₹0.00</div>
+                                <div class="stat-label">Total Expenses</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalProfit">₹0.00</div>
+                                <div class="stat-label">Total Profit</div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Profit from Agreements -->
+                        <div class="button-group">
+                            <button onclick="generateProfitFromAgreements()" class="btn btn-success">Generate Profit Records from Agreements</button>
+                        </div>
+
+                        <!-- Profit Records Table -->
+                        <div style="overflow-x: auto; margin-top: 1rem;">
+                            <table class="data-table" id="profitTable">
+                                <thead>
+                                    <tr>
+                                        <th>Token Number</th>
+                                        <th>Owner Name</th>
+                                        <th>Total Payment (Revenue)</th>
+                                        <th>Estimated Expenses</th>
+                                        <th>Net Profit</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profitTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Backup Tab -->
+                    <div id="backup" class="tab-panel">
+                        <h2>Backup Management</h2>
+
+					<!-- Backup Actions -->
+                       <div class="button-group">
+                           <button onclick="createBackup()" class="btn btn-primary">Backup Now</button>
+                           <button onclick="showImportModal()" class="btn btn-info">Import/Restore</button>
+                       </div>
+
+                       <!-- Backup History -->
+                       <div style="margin-top: 2rem;">
+                           <h3>Backup History</h3>
+                           <div style="overflow-x: auto;">
+                               <table class="data-table" id="backupTable">
+                                   <thead>
+                                       <tr>
+                                           <th>Backup Date</th>
+                                           <th>File Size</th>
+                                           <th>Records Count</th>
+							           </tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td colspan="4" style="text-align: center;">No backup history available</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<!-- Clear All Data (Admin Only) -->
+						<div style="margin-top: 2rem;">
+							<h3>Danger Zone</h3>
+							<button onclick="clearAllData()" class="btn btn-danger">Clear All Data</button>
+							<p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+									Warning: This will delete all agreements and user data (except admin account).
+							</p>
+						</div>
+					</div>
+
+					<!-- Settings Tab -->
+					<div id="settings" class="tab-panel">
+						<h2>System Settings</h2>
+							
+						<!-- User Management -->
+						<div class="settings-section">
+							<h3>User Management</h3>
+							<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+								<div class="form-group">
+									<label>Username:</label>
+									<input type="text" id="newUsername" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>Password:</label>
+									<input type="password" id="newUserPassword" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>Role:</label>
+									<select id="newUserRole" class="form-control">
+										<option value="user">User</option>
+										<option value="admin">Admin</option>
+										<option value="agent">Agent</option>
+										<option value="executive">Executive</option>
+									</select>
+								</div>
+								<div class="form-group" style="justify-content: flex-end;">
+									<button onclick="addUser()" class="btn btn-success" style="margin-top: 1.5rem;">Add User</button>
+							</div>
+						 </div>
+
+							<!-- Users Table -->
+							<div class="user-table">
+								<table style="width: 100%;">
+									<thead>
+										<tr>
+											<th>Username</th>
+											<th>Role</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody id="usersTableBody">
+									</tbody>
+								</table>
+							</div>
+						</div>
+
+						<!-- Password Change -->
+						<div class="settings-section">
+							<h3>Change Password</h3>
+							<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+								<div class="form-group">
+									<label>Current Password:</label>
+									<input type="password" id="currentPassword" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>New Password:</label>
+									<input type="password" id="changeNewPassword" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>Confirm New Password:</label>
+									<input type="password" id="confirmPassword" class="form-control">
+								</div>
+							</div>
+							<button onclick="updatePassword()" class="btn btn-primary">Update Password</button>
+						</div>
+
+						<!-- System Information -->
+						<div class="settings-section">
+							<h3>System Information</h3>
+							<div class="system-info">
+								<div class="info-card">
+									<div class="info-value" id="totalRecords">0</div>
+									<div class="info-label">Total Agreements</div>
+								</div>
+								<div class="info-card">
+									<div class="info-value" id="dbConnection">Unknown</div>
+									<div class="info-label">Database Status</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- About Tab -->
+					<div id="about" class="tab-panel">
+						<h2>About Agreement Manager</h2>
+						<div class="settings-section">
+							<h3>Version 2.0.0</h3>
+							<p>Cloud-enabled Agreement Management System</p>
+							<p><strong>Developed by:</strong> Shetty Legal Advisors</p>
+							<p><strong>Features:</strong></p>
+							<ul>
+								<li>Complete agreement lifecycle management</li>
+								<li>Multi-user support with role-based access</li>
+								<li>Advanced reporting and analytics</li>
+								<li>Profit tracking and calculation</li>
+								<li>Automated backup and restore</li>
+								<li>Cloud-ready architecture</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+  <!-- Import Modal -->
+	<div id="importModal" class="modal">
+		<div class="modal-content">
+			<h3>Import Backup</h3>
+			<input type="file" id="importFile" accept=".json" class="form-control" style="margin: 1rem 0;">
+			<div class="button-group">
+				<button onclick="importData()" class="btn btn-primary">Import</button>
+				<button onclick="closeImportModal()" class="btn btn-secondary">Cancel</button>
+			</div>
+		</div>
+	</div>                     
+	
+	
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        const API_BASE_URL = '/api';
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+        let agreements = [];
+        let users = [];
+        let currentEditingId = null;
+
+        // API helper function
+        async function apiCall(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                },
+                ...options
+            };
+
+            if (config.body && typeof config.body === 'object') {
+                config.body = JSON.stringify(config.body);
+            }
+
+            const response = await fetch(url, config);
+            
+            if (response.status === 401) {
+                logout();
+                throw new Error('Authentication required');
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            return response.json();
+        }
+
+        // Authentication functions
+        async function login() {
+			const usernameInput = document.getElementById('loginUsername');
+			const passwordInput = document.getElementById('loginPassword');
+			
+			const username = usernameInput.value.trim();
+			const password = passwordInput.value.trim();
+			
+			if (!username || !password) {
+				showNotification('Please enter both username and password', 'warning');
+				return;
+			}
+
+			const loginBtn = document.getElementById('loginBtn');
+			const originalText = loginBtn.textContent;
+			loginBtn.textContent = 'Logging in...';
+			loginBtn.disabled = true;
+
+			try {
+				const response = await apiCall('/auth/login', {
+					method: 'POST',
+					body: { username, password }
+				});
+
+				currentUser = response.user;
+				authToken = response.user.token;
+				localStorage.setItem('authToken', authToken);
+				localStorage.setItem('currentUser', JSON.stringify(response.user));
+				
+				// Show main app and hide login
+				document.getElementById('loginContainer').style.display = 'none';
+				document.getElementById('mainApp').style.display = 'block';
+				
+				// Update UI elements
+				document.getElementById('currentUser').textContent = response.user.username;
+				document.getElementById('userRole').textContent = response.user.role;
+				document.getElementById('userRole').className = `role-badge ${response.user.role}`;
+				
+			
+				// Show or hide settings tab based on user role
+				const settingsTab = document.getElementById('settingsTab');
+				const aboutTab = document.querySelector('button[onclick*="about"]');
+
+				if (response.user.role === 'admin') {
+					if (settingsTab) settingsTab.style.display = 'inline-block';
+				} else {
+					if (settingsTab) settingsTab.style.display = 'none';
+				}
+
+				// About tab should always be visible
+				if (aboutTab) aboutTab.style.display = 'inline-block';
+				
+				showNotification('Login successful!', 'success');
+				await loadAgreements();
+				await updateProfitSummary();
+				
+				// Fixed: Added missing closing brace and proper structure
+				if (response.user.role === 'admin') {
+					await loadUsers();
+				}
+			} catch (error) {
+				showNotification(error.message, 'error');
+			} finally {
+				loginBtn.textContent = originalText;
+				loginBtn.disabled = false;
+			}
+		}
+
+        async function updatePassword() {
+            const currentPassword = document.getElementById('currentPassword')?.value?.trim();
+            const newPassword = document.getElementById('changeNewPassword')?.value?.trim();
+            const confirmPassword = document.getElementById('confirmPassword')?.value?.trim();
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showNotification('Please fill in all password fields', 'warning');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showNotification('New passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                await apiCall('/auth/change-password', {
+                    method: 'PUT',
+                    body: { currentPassword, newPassword }
+                });
+
+                showNotification('Password updated successfully!', 'success');
+                // Clear password fields
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('changeNewPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+
+        // Report functions
+        async function generateReportByAgent() {
+            const agent = document.getElementById('reportAgent').value;
+            if (!agent) {
+                showNotification('Please select an agent', 'warning');
+                return;
+            }
+            await generateReport({ agentName: agent });
+        }
+
+        async function generateReportByOwner() {
+            const owner = document.getElementById('reportOwner').value;
+            if (!owner) {
+                showNotification('Please select an owner', 'warning');
+                return;
+            }
+            await generateReport({ ownerName: owner });
+        }
+
+        async function generateExpiringReport() {
+            const fromDate = document.getElementById('expiryFromDate').value;
+            const toDate = document.getElementById('expiryToDate').value;
+            if (!fromDate || !toDate) {
+                showNotification('Please select both from and to dates', 'warning');
+                return;
+            }
+            await generateReport({ expiryFromDate: fromDate, expiryToDate: toDate });
+        }
+
+        async function generatePendingReport() {
+            const pendingFilter = document.getElementById('pendingAmountFilter').value;
+            if (!pendingFilter) {
+                showNotification('Please select a pending amount condition', 'warning');
+                return;
+            }
+            await generateReport({ pendingAmount: pendingFilter });
+        }
+
+        async function generateReport(filters = {}) {
+            try {
+                const queryParams = new URLSearchParams(filters).toString();
+                const response = await apiCall(`/reports?${queryParams}`);
+                displayReport(response);
+            } catch (error) {
+                showNotification('Error generating report', 'error');
+            }
+        }
+
+        function displayReport(agreements) {
+            const tbody = document.getElementById('reportTableBody');
+            const table = document.getElementById('reportTable');
+            
+            if (!tbody || !table) return;
+            
+            tbody.innerHTML = '';
+            
+            if (!agreements || agreements.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No records found</td></tr>';
+                table.style.display = 'table';
+                return;
+            }
+            
+            agreements.forEach(agreement => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(agreement.owner_name || '-')}</td>
+                    <td>${escapeHtml(agreement.token_number || '-')}</td>
+                    <td>${escapeHtml(agreement.location || '-')}</td>
+                    <td>₹${(agreement.payment_due || 0).toFixed(2)}</td>
+                    <td>${escapeHtml(agreement.agent_name || '-')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            table.style.display = 'table';
+        }
+
+        // Clear filter functions
+        function clearAgentFilter() {
+            document.getElementById('reportAgent').value = '';
+        }
+
+        function clearOwnerFilter() {
+            document.getElementById('reportOwner').value = '';
+        }
+
+        function clearExpiryFilter() {
+            document.getElementById('expiryFromDate').value = '';
+            document.getElementById('expiryToDate').value = '';
+        }
+
+        function clearPendingFilter() {
+            document.getElementById('pendingAmountFilter').value = '';
+        }
+
+        // Backup functions
+        async function createBackup() {
+            try {
+                const response = await apiCall('/backup/export');
+                
+                // Download as JSON file
+                const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `agreement-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification('Backup created and downloaded successfully', 'success');
+            } catch (error) {
+                showNotification('Error creating backup', 'error');
+            }
+        }
+
+        function showImportModal() {
+            document.getElementById('importModal').style.display = 'block';
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').style.display = 'none';
+            document.getElementById('importFile').value = '';
+        }
+
+        async function importData() {
+            const fileInput = document.getElementById('importFile');
+            if (!fileInput.files.length) {
+                showNotification('Please select a backup file', 'warning');
+                return;
+            }
+            
+            try {
+                const file = fileInput.files[0];
+                const text = await file.text();
+                const backupData = JSON.parse(text);
+                
+                await apiCall('/backup/import', {
+                    method: 'POST',
+                    body: backupData
+                });
+                
+                showNotification('Backup imported successfully', 'success');
+                closeImportModal();
+                await loadAgreements();
+                await loadUsers();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification('Error importing backup', 'error');
+            }
+        }
+
+        async function clearAllData() {
+            const confirmation = prompt('WARNING: This will permanently delete ALL agreements and user data (except admin). Type "DELETE ALL" to confirm:');
+            if (confirmation !== 'DELETE ALL') {
+                showNotification('Data deletion cancelled', 'info');
+                return;
+            }
+
+            try {
+                await apiCall('/agreements/clear-all', {
+                    method: 'DELETE'
+                });
+
+                showNotification('All data cleared successfully', 'success');
+                await loadAgreements();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification('Error clearing data: ' + error.message, 'error');
+            }
+        }
+
+        // System info update
+        async function updateSystemInfo() {
+            try {
+                const response = await apiCall('/system/info');
+                
+                document.getElementById('totalRecords').textContent = response.totalRecords;
+                document.getElementById('dbConnection').textContent = response.dbStatus;
+                document.getElementById('dbConnection').style.color = response.dbStatus === 'Connected' ? '#27ae60' : '#e74c3c';
+            } catch (error) {
+                console.error('Error updating system info:', error);
+            }
+        }
+
+        // Profit functions
+        async function generateProfitFromAgreements() {
+            try {
+                const response = await apiCall('/reports/profit');
+                displayProfitData(response);
+                updateProfitSummary(response);
+            } catch (error) {
+                showNotification('Error generating profit report', 'error');
+            }
+        }
+
+        function displayProfitData(profitData) {
+            const tbody = document.getElementById('profitTableBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            profitData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(item.token_number || '-')}</td>
+                    <td>${escapeHtml(item.owner_name || '-')}</td>
+                    <td>₹${(item.revenue || 0).toFixed(2)}</td>
+                    <td>₹${(item.estimated_expenses || 0).toFixed(2)}</td>
+                    <td>₹${(item.profit || 0).toFixed(2)}</td>
+                    <td>${escapeHtml(item.agreement_status || '-')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function updateProfitSummary(profitData = null) {
+            if (!profitData) {
+                try {
+                    profitData = await apiCall('/reports/profit');
+                } catch (error) {
+                    console.error('Error loading profit data:', error);
+                    return;
+                }
+            }
+
+            const totalRevenue = profitData.reduce((sum, item) => sum + (item.revenue || 0), 0);
+            const totalExpenses = profitData.reduce((sum, item) => sum + (item.estimated_expenses || 0), 0);
+            const totalProfit = totalRevenue - totalExpenses;
+            
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `₹${totalExpenses.toFixed(2)}`;
+            document.getElementById('totalProfit').textContent = `₹${totalProfit.toFixed(2)}`;
+        }
+
+        // Populate owner dropdown for reports
+        function populateOwnerDropdown() {
+            const select = document.getElementById('reportOwner');
+            if (!select) return;
+            
+            // Clear existing options except first one
+            select.innerHTML = '<option value="">Select Owner</option>';
+            
+            const uniqueOwners = [...new Set(agreements.map(a => a.owner_name).filter(Boolean))];
+            uniqueOwners.forEach(owner => {
+                const option = document.createElement('option');
+                option.value = owner;
+                option.textContent = owner;
+                select.appendChild(option);
+            });
+        }
+
+        // Filter functions
+        function applyFilter() {
+            const filterType = document.getElementById('filterType').value;
+            const filterValue = document.getElementById('filterValue').value.toLowerCase().trim();
+            
+            if (!filterValue && filterType !== 'all') {
+                showNotification('Please enter a filter value', 'warning');
+                return;
+            }
+            
+            let filteredAgreements = agreements;
+            
+            if (filterType !== 'all' && filterValue) {
+                filteredAgreements = agreements.filter(agreement => {
+                    switch (filterType) {
+                        case 'name':
+                            return (agreement.owner_name || '').toLowerCase().includes(filterValue);
+                        case 'location':
+                            return (agreement.location || '').toLowerCase().includes(filterValue);
+                        case 'agent':
+                            return (agreement.agent_name || '').toLowerCase().includes(filterValue);
+                        case 'status':
+                            return (agreement.agreement_status || '').toLowerCase().includes(filterValue);
+                        case 'token':
+                            return (agreement.token_number || '').toLowerCase().includes(filterValue);
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            displayAgreements(filteredAgreements);
+        }
+
+        function resetFilter() {
+            document.getElementById('filterType').value = 'all';
+            document.getElementById('filterValue').value = '';
+            displayAgreements(agreements);
+        }
+
+        // Selection functions
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('#agreementsTableBody input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        function deleteSelected() {
+            const selected = Array.from(document.querySelectorAll('#agreementsTableBody input[type="checkbox"]:checked'))
+                .map(cb => cb.value);
+            
+            if (selected.length === 0) {
+                showNotification('Please select agreements to delete', 'warning');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete ${selected.length} agreement(s)?`)) {
+                showNotification('Bulk delete functionality will be implemented soon', 'info');
+            }
+        }
+
+        // Export functions
+        function exportToExcel() {
+            showNotification('Excel export functionality will be implemented soon', 'info');
+        }
+
+        function exportReport() {
+            showNotification('Report export functionality will be implemented soon', 'info');
+        }
+
+        function sendReminders() {
+            showNotification('Reminder functionality will be implemented soon', 'info');
+        }
+
+        // About function
+        function showAbout() {
+            showTab('about');
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 4000);
+        }
+
+        // Tab management
+        function showTab(tabName, event) {
+			// Check permissions for settings tab
+			if (tabName === 'settings') {
+				if (!currentUser || currentUser.role !== 'admin') {
+					showNotification('Access denied. Admin privileges required.', 'error');
+					
+					// Find and activate the agreements tab instead
+					const agreementsTab = document.querySelector('.tab-button[onclick*="agreements"]');
+					if (agreementsTab) {
+						agreementsTab.click();
+					}
+					return;
+				}
+			}
+
+			// Hide all panels and remove active class from all buttons
+			document.querySelectorAll('.tab-panel').forEach(panel => {
+				panel.classList.remove('active');
+			});
+			document.querySelectorAll('.tab-button').forEach(button => {
+				button.classList.remove('active');
+			});
+
+			// Show selected panel
+			const panel = document.getElementById(tabName);
+			if (panel) {
+				panel.classList.add('active');
+			}
+			
+			// Activate the clicked button
+			if (event && event.target) {
+				event.target.classList.add('active');
+			}
+
+			// Load data based on tab
+			if (tabName === 'agreements') {
+				loadAgreements();
+			} else if (tabName === 'settings' && currentUser?.role === 'admin') {
+				loadUsers();
+				updateSystemInfo();
+			} else if (tabName === 'profit') {
+				updateProfitSummary();
+			} else if (tabName === 'about') {
+				// About tab doesn't need data loading
+			}
+		}
+        // Connection status update
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            if (navigator.onLine) {
+                statusElement.textContent = 'Online';
+                statusElement.className = 'connection-status connected';
+            } else {
+                statusElement.textContent = 'Offline';
+                statusElement.className = 'connection-status disconnected';
+            }
+        }
+
+        
+        
+			// Logout button
+			const logoutBtn = document.getElementById('logoutBtn');
+			if (logoutBtn) {
+				logoutBtn.addEventListener('click', logout);
+			}
+
+			// Payment calculation
+			['totalPayment', 'ownerPayment', 'tenantPayment'].forEach(id => {
+				const element = document.getElementById(id);
+				if (element) {
+					element.addEventListener('input', calculatePaymentDue);
+				}
+			});
+
+			// Connection status
+			window.addEventListener('online', updateConnectionStatus);
+			window.addEventListener('offline', updateConnectionStatus);
+			updateConnectionStatus();
+
+			// Check authentication		
+			console.log('Application initialization complete');
+		
+		
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = null;
+                authToken = null;
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                showNotification('Logged out successfully', 'info');
+            }
+        }
+
+       
+        // Load agreements function
+        async function loadAgreements() {
+            try {
+                const response = await apiCall('/agreements');
+                agreements = response.agreements.map(agreement => ({
+                    ...agreement,
+                    ownerName: agreement.owner_name,
+                    tokenNumber: agreement.token_number,
+                    agreementDate: agreement.agreement_date,
+                    ownerContact: agreement.owner_contact,
+                    tenantContact: agreement.tenant_contact,
+                    expiryDate: agreement.expiry_date,
+                    reminderDate: agreement.reminder_date,
+                    ccEmail: agreement.cc_email,
+                    agentName: agreement.agent_name,
+                    totalPayment: parseFloat(agreement.total_payment) || 0,
+                    ownerPayment: parseFloat(agreement.payment_owner) || 0,
+                    tenantPayment: parseFloat(agreement.payment_tenant) || 0,
+                    paymentDue: parseFloat(agreement.payment_due) || 0,
+                    agreementStatus: agreement.agreement_status,
+                    biometricDate: agreement.biometric_date,
+                    createdAt: agreement.created_at
+                }));
+                
+                displayAgreements(agreements);
+                populateOwnerDropdown();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification('Failed to load agreements: ' + error.message, 'error');
+            }
+        }
+
+        // Display agreements function
+        function displayAgreements(agreements) {
+            try {
+                const tbody = document.getElementById('agreementsTableBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+
+                if (!agreements || agreements.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="24" style="text-align: center; padding: 20px; color: #666;">
+                                No agreements found. Click "Add Agreement" to create your first agreement.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                agreements.forEach(agreement => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" value="${agreement.id}"></td>
+                        <td>${agreement.id}</td>
+                        <td>${escapeHtml(agreement.owner_name || '-')}</td>
+                        <td>${escapeHtml(agreement.location || '-')}</td>
+                        <td>${escapeHtml(agreement.token_number || '-')}</td>
+                        <td>${escapeHtml(agreement.password || '-')}</td>
+                        <td>${escapeHtml(agreement.owner_contact || '-')}</td>
+                        <td>${escapeHtml(agreement.tenant_contact || '-')}</td>
+                        <td>${escapeHtml(agreement.email || '-')}</td>
+                        <td>${formatDate(agreement.expiry_date)}</td>
+                        <td>${formatDate(agreement.reminder_date)}</td>
+                        <td>${escapeHtml(agreement.cc_email || '-')}</td>
+                        <td>${escapeHtml(agreement.staff_name || '-')}</td>
+                        <td>₹${(agreement.total_payment || 0).toFixed(2)}</td>
+                        <td>₹${(agreement.payment_owner || 0).toFixed(2)}</td>
+                        <td>${formatDate(agreement.payment_date1)}</td>
+                        <td>${formatDate(agreement.payment_date2)}</td>
+                        <td>₹${(agreement.payment_tenant || 0).toFixed(2)}</td>
+                        <td>₹${(agreement.payment_due || 0).toFixed(2)}</td>
+                        <td>${agreement.sent_reminder ? 'Yes' : 'No'}</td>
+                        <td>${escapeHtml(agreement.agreement_status || '-')}</td>
+                        <td>${escapeHtml(agreement.agent_name || '-')}</td>
+                        <td>${formatDate(agreement.biometric_date)}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editAgreement(${agreement.id})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAgreement(${agreement.id})">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error displaying agreements:', error);
+                showNotification('Error displaying agreements', 'error');
+            }
+        }
+
+        // Add agreement function
+        async function addAgreement() {
+            const ownerName = document.getElementById('ownerName')?.value?.trim();
+            const location = document.getElementById('location')?.value?.trim();
+            const tokenNumber = document.getElementById('tokenNumber')?.value?.trim();
+            
+            if (!ownerName || !location || !tokenNumber) {
+                showNotification('Please fill in required fields: Owner Name, Location, Token Number', 'warning');
+                return;
+            }
+
+            const agreementData = {
+                ownerName,
+                location,
+                tokenNumber,
+                password: document.getElementById('password')?.value || '',
+                agreementDate: document.getElementById('agreementDate')?.value || null,
+                ownerContact: document.getElementById('ownerContact')?.value || '',
+                tenantContact: document.getElementById('tenantContact')?.value || '',
+                email: document.getElementById('email')?.value || '',
+                expiryDate: document.getElementById('expiryDate')?.value || null,
+                reminderDate: document.getElementById('reminderDate')?.value || null,
+                ccEmail: document.getElementById('ccEmail')?.value || 'support@ramnathshetty.com',
+                staffName: document.getElementById('staffName')?.value || '',
+                agentName: document.getElementById('agentName')?.value || '',
+                totalPayment: parseFloat(document.getElementById('totalPayment')?.value) || 0,
+                ownerPayment: parseFloat(document.getElementById('ownerPayment')?.value) || 0,
+                paymentDate1: document.getElementById('paymentDate1')?.value || null,
+                paymentDate2: document.getElementById('paymentDate2')?.value || null,
+                tenantPayment: parseFloat(document.getElementById('tenantPayment')?.value) || 0,
+                paymentDue: parseFloat(document.getElementById('paymentDue')?.value) || 0,
+                sentReminder: parseInt(document.getElementById('sentReminder')?.value) || 0,
+                agreementStatus: document.getElementById('agreementStatus')?.value || 'Drafted',
+                biometricDate: document.getElementById('biometricDate')?.value || null
+            };
+
+            try {
+                await apiCall('/agreements', {
+                    method: 'POST',
+                    body: agreementData
+                });
+                
+                await loadAgreements();
+                clearForm();
+                showNotification('Agreement added successfully!', 'success');
+            } catch (error) {
+                showNotification('Failed to add agreement: ' + error.message, 'error');
+            }
+        }
+
+        // Edit agreement function
+        async function editAgreement(id) {
+            try {
+                const response = await apiCall(`/agreements/${id}`);
+                const agreement = response;
+                
+                // Populate form with agreement data
+                document.getElementById('ownerName').value = agreement.owner_name || '';
+                document.getElementById('location').value = agreement.location || '';
+                document.getElementById('tokenNumber').value = agreement.token_number || '';
+                document.getElementById('password').value = agreement.password || '';
+                document.getElementById('agreementDate').value = agreement.agreement_date || '';
+                document.getElementById('ownerContact').value = agreement.owner_contact || '';
+                document.getElementById('tenantContact').value = agreement.tenant_contact || '';
+                document.getElementById('email').value = agreement.email || '';
+                document.getElementById('expiryDate').value = agreement.expiry_date || '';
+                document.getElementById('reminderDate').value = agreement.reminder_date || '';
+                document.getElementById('ccEmail').value = agreement.cc_email || '';
+                document.getElementById('staffName').value = agreement.staff_name || '';
+                document.getElementById('totalPayment').value = agreement.total_payment || '';
+                document.getElementById('ownerPayment').value = agreement.payment_owner || '';
+                document.getElementById('paymentDate1').value = agreement.payment_date1 || '';
+                document.getElementById('paymentDate2').value = agreement.payment_date2 || '';
+                document.getElementById('tenantPayment').value = agreement.payment_tenant || '';
+                document.getElementById('paymentDue').value = agreement.payment_due || '';
+                document.getElementById('sentReminder').value = agreement.sent_reminder || '0';
+                document.getElementById('agreementStatus').value = agreement.agreement_status || 'Drafted';
+                document.getElementById('agentName').value = agreement.agent_name || '';
+                document.getElementById('biometricDate').value = agreement.biometric_date || '';
+                
+                // Show update button, hide add button
+                document.getElementById('updateBtn').style.display = 'inline-block';
+                document.querySelector('button[onclick="addAgreement()"]').style.display = 'none';
+                
+                // Store current editing ID
+                currentEditingId = id;
+                
+            } catch (error) {
+                showNotification('Error loading agreement for editing', 'error');
+            }
+        }
+
+        // Update agreement function
+        async function updateAgreement() {
+            if (!currentEditingId) return;
+            
+            const ownerName = document.getElementById('ownerName')?.value?.trim();
+            const location = document.getElementById('location')?.value?.trim();
+            const tokenNumber = document.getElementById('tokenNumber')?.value?.trim();
+            
+            if (!ownerName || !location || !tokenNumber) {
+                showNotification('Please fill in required fields: Owner Name, Location, Token Number', 'warning');
+                return;
+            }
+
+            const agreementData = {
+                ownerName,
+                location,
+                tokenNumber,
+                password: document.getElementById('password')?.value || '',
+                agreementDate: document.getElementById('agreementDate')?.value || null,
+                ownerContact: document.getElementById('ownerContact')?.value || '',
+                tenantContact: document.getElementById('tenantContact')?.value || '',
+                email: document.getElementById('email')?.value || '',
+                expiryDate: document.getElementById('expiryDate')?.value || null,
+                reminderDate: document.getElementById('reminderDate')?.value || null,
+                ccEmail: document.getElementById('ccEmail')?.value || 'support@ramnathshetty.com',
+                staffName: document.getElementById('staffName')?.value || '',
+                agentName: document.getElementById('agentName')?.value || '',
+                totalPayment: parseFloat(document.getElementById('totalPayment')?.value) || 0,
+                ownerPayment: parseFloat(document.getElementById('ownerPayment')?.value) || 0,
+                paymentDate1: document.getElementById('paymentDate1')?.value || null,
+                paymentDate2: document.getElementById('paymentDate2')?.value || null,
+                tenantPayment: parseFloat(document.getElementById('tenantPayment')?.value) || 0,
+                paymentDue: parseFloat(document.getElementById('paymentDue')?.value) || 0,
+                sentReminder: parseInt(document.getElementById('sentReminder')?.value) || 0,
+                agreementStatus: document.getElementById('agreementStatus')?.value || 'Drafted',
+                biometricDate: document.getElementById('biometricDate')?.value || null
+            };
+
+            try {
+                await apiCall(`/agreements/${currentEditingId}`, {
+                    method: 'PUT',
+                    body: agreementData
+                });
+
+                showNotification('Agreement updated successfully!', 'success');
+                clearForm();
+                await loadAgreements();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification(error.message || 'Error updating agreement', 'error');
+            }
+        }
+
+        // Clear form function
+        function clearForm() {
+            const formElements = [
+                'ownerName', 'location', 'tokenNumber', 'password', 'agreementDate',
+                'ownerContact', 'tenantContact', 'email', 'expiryDate', 'reminderDate',
+                'staffName', 'totalPayment', 'ownerPayment', 'paymentDate1', 'paymentDate2',
+                'tenantPayment', 'paymentDue', 'biometricDate'
+            ];
+            
+            formElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element && element.id !== 'ccEmail') {
+                    element.value = '';
+                }
+            });
+
+            document.getElementById('ccEmail').value = 'support@ramnathshetty.com';
+            document.getElementById('agreementStatus').value = 'Drafted';
+            document.getElementById('sentReminder').value = '0';
+            document.getElementById('agentName').value = '';
+            
+            // Reset buttons
+            document.getElementById('updateBtn').style.display = 'none';
+            document.querySelector('button[onclick="addAgreement()"]').style.display = 'inline-block';
+            currentEditingId = null;
+        }
+
+        // Delete agreement function
+        async function deleteAgreement(id) {
+            if (confirm('Are you sure you want to delete this agreement?')) {
+                try {
+                    await apiCall(`/agreements/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    await loadAgreements();
+                    showNotification('Agreement deleted successfully!', 'success');
+                } catch (error) {
+                    showNotification('Failed to delete agreement: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Calculate payment due
+        function calculatePaymentDue() {
+            const total = parseFloat(document.getElementById('totalPayment')?.value) || 0;
+            const ownerPaid = parseFloat(document.getElementById('ownerPayment')?.value) || 0;
+            const tenantPaid = parseFloat(document.getElementById('tenantPayment')?.value) || 0;
+            const due = total - (ownerPaid + tenantPaid);
+            
+            const paymentDueElement = document.getElementById('paymentDue');
+            if (paymentDueElement) {
+                paymentDueElement.value = due.toFixed(2);
+            }
+        }
+
+        // User management functions
+        async function loadUsers() {
+            if (currentUser?.role !== 'admin') return;
+            
+            try {
+                const response = await apiCall('/users');
+                users = response;
+                
+                const tbody = document.getElementById('usersTableBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td><span class="role-tag ${user.role}">${user.role}</span></td>
+                        <td>
+                            <button onclick="deleteUser(${user.id}, '${user.username}')" class="btn btn-danger btn-sm" ${user.username === 'admin' ? 'disabled' : ''}>🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                showNotification('Failed to load users: ' + error.message, 'error');
+            }
+        }
+
+        async function addUser() {
+            const username = document.getElementById('newUsername')?.value?.trim();
+            const password = document.getElementById('newUserPassword')?.value?.trim();
+            const role = document.getElementById('newUserRole')?.value;
+
+            if (!username || !password) {
+                showNotification('Please enter username and password', 'warning');
+                return;
+            }
+
+            try {
+                await apiCall('/users', {
+                    method: 'POST',
+                    body: { username, password, role }
+                });
+
+                showNotification(`User "${username}" created successfully!`, 'success');
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newUserPassword').value = '';
+                document.getElementById('newUserRole').value = 'user';
+                await loadUsers();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+		
+		async function deleteUser(id, username) {
+			if (username === 'admin') {
+				showNotification('Cannot delete admin user', 'error');
+				return;
+			}
+
+			if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+				return;
+			}
+
+			try {
+				await apiCall(`/users/${id}`, { method: 'DELETE' });
+				showNotification(`User "${username}" deleted successfully.`, 'success');
+				await loadUsers();
+			} catch (error) {
+				showNotification(error.message, 'error');
+			}
+		}
+		</script>
+		</body>
+		</html>
+	
+           
+     
+	
