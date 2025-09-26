@@ -1097,8 +1097,10 @@
 				
 				// Show or hide settings tab based on user role
 				const settingsTab = document.getElementById('settingsTab');
+				console.log('Settings tab found:', settingsTab); // Add this line
 				if (response.user.role === 'admin') {
-					settingsTab.style.display = 'inline-block'; // Use inline-block to match other tab buttons
+					settingsTab.style.display = 'inline-block';
+					console.log('Settings tab should now be visible'); // Add this line
 				} else {
 					settingsTab.style.display = 'none';
 				}
