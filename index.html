@@ -514,8 +514,8 @@
                 <input type="password" id="loginPassword" class="form-control" placeholder="Enter password">
             </div>
 			
-         	<button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="login()">
-				Login
+         	<button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="login()">Login
+			
 			</button>
             <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
                 <strong>Demo Credentials:</strong><br>
@@ -1033,7 +1033,7 @@
 								<button onclick="closeImportModal()" class="btn btn-secondary">Cancel</button>
 							</div>
 						</div>
-					</div>     
+					</div>					     
 					
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -1075,7 +1075,39 @@
             return response.json();
         }
 
-        // Authentication functions
+ 
+        async function updatePassword() {
+            const currentPassword = document.getElementById('currentPassword')?.value?.trim();
+            const newPassword = document.getElementById('changeNewPassword')?.value?.trim();
+            const confirmPassword = document.getElementById('confirmPassword')?.value?.trim();
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showNotification('Please fill in all password fields', 'warning');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showNotification('New passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                await apiCall('/auth/change-password', {
+                    method: 'PUT',
+                    body: { currentPassword, newPassword }
+                });
+
+                showNotification('Password updated successfully!', 'success');
+                // Clear password fields
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('changeNewPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+		
+		       // Authentication functions
         async function login() {
 			const usernameInput = document.getElementById('loginUsername');
 			const passwordInput = document.getElementById('loginPassword');
@@ -1133,37 +1165,6 @@
 					aboutTab.style.display = 'inline-block';
 					console.log('About tab should be visible now');
 				}
-
-        async function updatePassword() {
-            const currentPassword = document.getElementById('currentPassword')?.value?.trim();
-            const newPassword = document.getElementById('changeNewPassword')?.value?.trim();
-            const confirmPassword = document.getElementById('confirmPassword')?.value?.trim();
-
-            if (!currentPassword || !newPassword || !confirmPassword) {
-                showNotification('Please fill in all password fields', 'warning');
-                return;
-            }
-
-            if (newPassword !== confirmPassword) {
-                showNotification('New passwords do not match', 'error');
-                return;
-            }
-
-            try {
-                await apiCall('/auth/change-password', {
-                    method: 'PUT',
-                    body: { currentPassword, newPassword }
-                });
-
-                showNotification('Password updated successfully!', 'success');
-                // Clear password fields
-                document.getElementById('currentPassword').value = '';
-                document.getElementById('changeNewPassword').value = '';
-                document.getElementById('confirmPassword').value = '';
-            } catch (error) {
-                showNotification(error.message, 'error');
-            }
-        }
 
         // Report functions
         async function generateReportByAgent() {
