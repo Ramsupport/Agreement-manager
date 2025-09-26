@@ -2009,7 +2009,7 @@
 							headers: { 'Content-Type': 'application/json' }
 						});
 
-						localStorage.setItem('authToken', response.token);
+						localStorage.setItem('authToken', response.user.token);
 						localStorage.setItem('currentUser', JSON.stringify(response.user));
 						document.getElementById('loginContainer').style.display = 'none';
 						document.getElementById('mainApp').style.display = 'block';
