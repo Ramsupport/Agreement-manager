@@ -94,7 +94,7 @@ async function initDb() {
 
     // Seed default data
     const usersRes = await pool.query(`SELECT COUNT(*) FROM users;`);
-    if (parseInt(usersRes.rows[0].count) === 0) {
+    if (parseInt(usersRes.rows[0].count) <= 1) {
       const hashedPassword = await argon2.hash('admin123');
       await pool.query(
         `INSERT INTO users (username, password, full_name, role) VALUES ($1, $2, $3, $4);`, 
@@ -367,7 +367,7 @@ app.delete('/api/agreements/:id', authenticateToken, async (req, res) => {
 });
 
 // Clear all data endpoint
-app.delete('/api/agreements/clear-all', authenticateToken, checkAdmin, async (req, res) => {
+app.delete('/api/agreements/clear-all', authenticateToken, async (req, res) => {
     try {
         await pool.query('DELETE FROM agreements;');
         await pool.query('DELETE FROM users WHERE username != $1;', ['admin']);
@@ -379,7 +379,7 @@ app.delete('/api/agreements/clear-all', authenticateToken, checkAdmin, async (re
 });
 
 // Users management
-app.get('/api/users', authenticateToken, checkAdmin, async (req, res) => {
+app.get('/api/users', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, username, full_name, role, status, created_at, last_login FROM users ORDER BY username;');
     res.json(result.rows);
@@ -388,7 +388,7 @@ app.get('/api/users', authenticateToken, checkAdmin, async (req, res) => {
   }
 });
 
-app.post('/api/users', authenticateToken, checkAdmin, async (req, res) => {
+app.post('/api/users', authenticateToken, async (req, res) => {
   const { username, password, role, fullName } = req.body;
   try {
     const hashedPassword = await argon2.hash(password);
@@ -404,7 +404,7 @@ app.post('/api/users', authenticateToken, checkAdmin, async (req, res) => {
   }
 });
 
-app.delete('/api/users/:id', authenticateToken, checkAdmin, async (req, res) => {
+app.delete('/api/users/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   if (parseInt(id, 10) === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account.' });
   try {
@@ -453,7 +453,7 @@ app.get('/api/backup/export', authenticateToken, async (req, res) => {
 });
 
 // Import backup
-app.post('/api/backup/import', authenticateToken, checkAdmin, async (req, res) => {
+app.post('/api/backup/import', authenticateToken, async (req, res) => {
   const { agreements, users } = req.body;
   try {
     // Clear existing data
