@@ -2003,7 +2003,7 @@
 					}
 
 					try {
-						const response = await apiCall('/login', {
+						const response = await apiCall('/api/auth/login', {
 							method: 'POST',
 							body: JSON.stringify({ username, password }),
 							headers: { 'Content-Type': 'application/json' }
