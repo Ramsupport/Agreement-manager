@@ -1991,7 +1991,7 @@
 		
 		// Initialize the application
 		document.addEventListener('DOMContentLoaded', function() {
-			const loginBtn = document.getElementById('loginButton');
+			const loginBtn = document.getElementById('loginBtn'); // ✅ match the actual ID
 			if (loginBtn) {
 				loginBtn.addEventListener('click', async function() {
 					const username = document.getElementById('loginUsername').value;
@@ -2009,7 +2009,6 @@
 							headers: { 'Content-Type': 'application/json' }
 						});
 
-						// If login successful:
 						localStorage.setItem('authToken', response.token);
 						localStorage.setItem('currentUser', JSON.stringify(response.user));
 						document.getElementById('loginContainer').style.display = 'none';
@@ -2022,7 +2021,6 @@
 				});
 			}
 		});
-
 	</script>
 </body>
 </html> 		
