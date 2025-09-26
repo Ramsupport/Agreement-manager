@@ -488,11 +488,8 @@
                 <label for="loginPassword">Password</label>
                 <input type="password" id="loginPassword" class="form-control" placeholder="Enter password">
             </div>
-            <button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-				Login
-			</button>
-
-			<button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="login()">
+			
+         	<button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="login()">
 				Login
 			</button>
             <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
@@ -1078,8 +1075,12 @@
 				document.getElementById('userRole').className = `role-badge ${response.user.role}`;
 				
 				// Hide settings tab for non-admin users
-				if (response.user.role !== 'admin') {
-					document.getElementById('settingsTab').style.display = 'none';
+				// Show or hide settings tab based on user role
+				const settingsTab = document.getElementById('settingsTab');
+				if (response.user.role === 'admin') {
+					settingsTab.style.display = 'block'; // Explicitly show for admin
+				} else {
+					settingsTab.style.display = 'none';  // Hide for everyone else
 				}
 				
 				showNotification('Login successful!', 'success');
