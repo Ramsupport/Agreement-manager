@@ -549,10 +549,10 @@
 					<button class="tab-button" onclick="showTab('reports', event)">Reports</button>
 					<button class="tab-button" onclick="showTab('profit', event)">Profit</button>
 					<button class="tab-button" onclick="showTab('backup', event)">Backup</button>
-					<<button class="tab-button" onclick="showTab('settings', event)" id="settingsTab" style="display: inline-block;">Settings</button>
-					<button class="tab-button" onclick="showTab('logs', event)" id="logsTab">Activity Logs</button>
-					<button class="tab-button" onclick="showTab('about', event)" style="display: inline-block;">About</button>
-				</div>
+					<button class="tab-button" onclick="showTab('settings', event)" id="settingsTab">Settings</button>
+					<button class="tab-button" onclick="showTab('activity-logs', event)">Activity Logs</button>
+					<button class="tab-button" onclick="showTab('about', event)">About</button>
+				</div>>
 
                 <!-- Tab Content -->
                 <div class="tab-content">
@@ -904,136 +904,131 @@
 						</div>
 					</div>
 					
-					<!-- Settings Tab -->
 					<div id="settings" class="tab-panel">
-						<h2>System Settings</h2>
-						
-						<!-- User Management -->
-						<div class="settings-section">
-							<h3>User Management</h3>
-							<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
-								<div class="form-group">
-									<label>Username:</label>
-									<input type="text" id="newUsername" class="form-control">
-								</div>
-								<div class="form-group">
-									<label>Password:</label>
-									<input type="password" id="newUserPassword" class="form-control">
-								</div>
-								<div class="form-group">
-									<label>Role:</label>
-									<select id="newUserRole" class="form-control">
-										<option value="user">User</option>
-										<option value="admin">Admin</option>
-										<option value="agent">Agent</option>
-										<option value="executive">Executive</option>
-									</select>
-								</div>
-								<div class="form-group">
-									<button onclick="addUser()" class="btn btn-success" style="margin-top: 1.5rem;">Add User</button>
-								</div>
-							</div>
-
-							<!-- Users Table -->
-							<table class="data-table" style="margin-top: 1rem;">
-								<thead>
-									<tr>
-										<th>Username</th>
-										<th>Role</th>
-										<th>Actions</th>
-									</tr>
-								</thead>
-								<tbody id="usersTableBody">
-								</tbody>
-							</table>
-						</div>
-
-						<!-- Password Change -->
-						<div class="settings-section">
-							<h3>Change Password</h3>
-							<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-								<div class="form-group">
-									<label>Current Password:</label>
-									<input type="password" id="currentPassword" class="form-control">
-								</div>
-								<div class="form-group">
-									<label>New Password:</label>
-									<input type="password" id="changeNewPassword" class="form-control">
-								</div>
-								<div class="form-group">
-									<label>Confirm New Password:</label>
-									<input type="password" id="confirmPassword" class="form-control">
-								</div>
-							</div>
-							<button onclick="updatePassword()" class="btn btn-primary">Update Password</button>
-						</div>
+			<h2>System Settings</h2>
+			
+			<div class="settings-section">
+				<h3>User Management</h3>
+				<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+					<div class="form-group">
+						<label>Username:</label>
+						<input type="text" id="newUsername" class="form-control">
 					</div>
-
-					<!-- Activity Logs Tab -->
-					<div id="logs" class="tab-panel">
-						<h2>Activity Logs</h2>
-						
-						<!-- Filter Section -->
-						<div class="filter-section">
-							<label>Filter by User:</label>
-							<select id="logUserFilter" class="form-control" style="width: 200px;">
-								<option value="">All Users</option>
-							</select>
-							<label>From Date:</label>
-							<input type="date" id="logFromDate" class="form-control" style="width: 150px;">
-							<label>To Date:</label>
-							<input type="date" id="logToDate" class="form-control" style="width: 150px;">
-							<button onclick="loadActivityLogs()" class="btn btn-primary">Filter</button>
-							<button onclick="clearLogFilter()" class="btn btn-secondary">Clear</button>
-						</div>
-
-						<!-- Activity Logs Table -->
-						<table class="data-table" id="activityLogsTable">
-							<thead>
-								<tr>
-									<th>Timestamp</th>
-									<th>Username</th>
-									<th>Action</th>
-									<th>Details</th>
-									<th>IP Address</th>
-								</tr>
-							</thead>
-							<tbody id="activityLogsBody">
-							</tbody>
-						</table>
+					<div class="form-group">
+						<label>Password:</label>
+						<input type="password" id="newUserPassword" class="form-control">
 					</div>
+					<div class="form-group">
+						<label>Role:</label>
+						<select id="newUserRole" class="form-control">
+							<option value="user">User</option>
+							<option value="admin">Admin</option>
+							<option value="agent">Agent</option>
+							<option value="executive">Executive</option>
+						</select>
+					</div>
+					<div class="form-group" style="justify-content: flex-end;">
+						 <button onclick="addUser()" class="btn btn-success" style="margin-top: 1.5rem;">Add User</button>
+					</div>
+				</div>
 
-					<!-- About Tab -->
-					<div id="about" class="tab-panel">
-						<h2>About Agreement Manager</h2>
-						<div class="settings-section">
-							<h3>Version 2.0.0</h3>
-							<p>Cloud-enabled Agreement Management System</p>
-							<p><strong>Developed by:</strong> Shetty Legal Advisors</p>
-							<p><strong>Features:</strong></p>
-							<ul>
-								<li>Complete agreement lifecycle management</li>
-								<li>Multi-user support with role-based access</li>
-								<li>Advanced reporting and analytics</li>
-								<li>Profit tracking and calculation</li>
-								<li>Automated backup and restore</li>
-								<li>Activity logging and audit trail</li>
-								<li>Cloud-ready architecture</li>
-							</ul>
-						</div>
-					</div>	
-									
-				<!-- Import Modal -->
-					<div id="importModal" class="modal">
-						<div class="modal-content">
-							<h3>Import Backup</h3>
-							<input type="file" id="importFile" accept=".json" class="form-control" style="margin: 1rem 0;">
-							<div class="button-group">
-								<button onclick="importData()" class="btn btn-primary">Import</button>
-								<button onclick="closeImportModal()" class="btn btn-secondary">Cancel</button>
-							</div>
-						</div>
-					</div>					     
+				<table class="data-table" style="margin-top: 1rem;">
+					<thead>
+						<tr>
+							<th>Username</th>
+							<th>Role</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody id="usersTableBody">
+					</tbody>
+				</table>
+			</div>
+
+			<div class="settings-section">
+				<h3>Change Password</h3>
+				<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+					<div class="form-group">
+						<label>Current Password:</label>
+						<input type="password" id="currentPassword" class="form-control">
+					</div>
+					<div class="form-group">
+						<label>New Password:</label>
+						<input type="password" id="changeNewPassword" class="form-control">
+					</div>
+					<div class="form-group">
+						<label>Confirm New Password:</label>
+						<input type="password" id="confirmPassword" class="form-control">
+					</div>
+				</div>
+				<button onclick="updatePassword()" class="btn btn-primary">Update Password</button>
+			</div>
+
+			<div class="settings-section">
+				<h3>System Information</h3>
+				<div class="system-info">
+					<div class="info-card">
+						<div class="info-value" id="totalRecords">0</div>
+						<div class="info-label">Total Agreements</div>
+					</div>
+					<div class="info-card">
+						<div class="info-value" id="dbConnection">Unknown</div>
+						<div class="info-label">Database Status</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="activity-logs" class="tab-panel">
+			<h2>Activity Logs</h2>
+			<div class="settings-section">
+				<h3>Filter Logs</h3>
+				<div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+					<input type="text" id="logUserFilter" class="form-control" placeholder="Filter by username...">
+					<input type="date" id="logFromDate" class="form-control">
+					<input type="date" id="logToDate" class="form-control">
+					<button onclick="loadActivityLogs()" class="btn btn-primary">Filter</button>
+					<button onclick="clearLogFilter()" class="btn btn-secondary">Clear</button>
+				</div>
+			</div>
+			<div style="overflow-x: auto; margin-top: 1rem;">
+				<table class="data-table">
+					<thead>
+						<tr>
+							<th>Timestamp</th>
+							<th>User</th>
+							<th>Action</th>
+							<th>Details</th>
+							<th>IP Address</th>
+						</tr>
+					</thead>
+					<tbody id="activityLogsBody">
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<div id="about" class="tab-panel">
+			<h2>About Agreement Manager</h2>
+			<div class="settings-section">
+				<h3>Version 2.0.0</h3>
+				<p>Cloud-enabled Agreement Management System</p>
+				<p>
+					<strong>Created by:</strong> Nithya Technologies, Mumbai<br>
+					<strong>Designed by:</strong> Ramnath Shetty
+				</p>
+				<p><strong>Features:</strong></p>
+				<ul>
+					<li>Complete agreement lifecycle management</li>
+					<li>Multi-user support with role-based access</li>
+					<li>Advanced reporting and analytics</li>
+					<li>Profit tracking and calculation</li>
+					<li>Automated backup and restore</li>
+					<li>Activity logging and audit trail</li>
+					<li>Cloud-ready architecture</li>
+				</ul>
+			</div>
+		</div>
 					
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 <script>
