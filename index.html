@@ -1095,13 +1095,12 @@
 				document.getElementById('userRole').textContent = response.user.role;
 				document.getElementById('userRole').className = `role-badge ${response.user.role}`;
 				
-				// Hide settings tab for non-admin users
 				// Show or hide settings tab based on user role
 				const settingsTab = document.getElementById('settingsTab');
 				if (response.user.role === 'admin') {
-					settingsTab.style.display = 'block'; // Explicitly show for admin
+					settingsTab.style.display = 'inline-block'; // Use inline-block to match other tab buttons
 				} else {
-					settingsTab.style.display = 'none';  // Hide for everyone else
+					settingsTab.style.display = 'none';
 				}
 				
 				showNotification('Login successful!', 'success');
