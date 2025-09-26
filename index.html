@@ -1034,6 +1034,31 @@
     let agreements = [];
     let users = [];
     let currentEditingId = null;
+	
+	function showTab(tabName, event) {
+		// Hide all tab panels
+		document.querySelectorAll('.tab-panel').forEach(panel => {
+			panel.classList.remove('active');
+		});
+		
+		// Remove active class from all tab buttons
+		document.querySelectorAll('.tab-button').forEach(button => {
+			button.classList.remove('active');
+		});
+		
+		// Show selected tab panel
+		const panel = document.getElementById(tabName);
+		if (panel) {
+			panel.classList.add('active');
+		}
+		
+		// Activate clicked button
+		if (event && event.target) {
+			event.target.classList.add('active');
+		}
+		
+		console.log('Switched to tab:', tabName);
+	}
 
     // --- Core Functions ---
 
