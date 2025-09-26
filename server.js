@@ -12,8 +12,10 @@ app.use(cors());
 
 // --- Database Setup ---
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionString: "postgresql://postgres:VYhoucqJxOtjGjbghqKImSjiRLLAkUNi@tramway.proxy.rlwy.net:37212/railway",
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
@@ -253,7 +255,6 @@ app.get('/api/agreements', authenticateToken, async (req, res) => {
 
 app.post('/api/agreements', authenticateToken, async (req, res) => {
   const data = req.body;
-  console.log('Received data:', data); // Add this for debugging
   try {
     const params = [
       data.ownerName,
@@ -280,8 +281,6 @@ app.post('/api/agreements', authenticateToken, async (req, res) => {
       data.biometricDate || null,
       req.user.username
     ];
-
-    console.log('Params count:', params.length); // Add this for debugging
 
     const result = await pool.query(`
       INSERT INTO agreements (
@@ -587,7 +586,7 @@ app.get('*', (req, res) => {
 
 // Initialize database and start server
 initDb().then(() => {
-  const PORT = process.env.PORT || 8000;
+  const PORT = process.env.PORT || 8001;
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check available at: http://localhost:${PORT}/api/health`);
