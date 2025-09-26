@@ -10,7 +10,7 @@ restartPolicyType = "ON_FAILURE"
 
 [[services]]
 name = "web"
-http.port = 3000
+http.port = 8000  # Changed from 3000 to match server.js
 
 [variables]
 NODE_ENV = "production"

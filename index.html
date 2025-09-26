@@ -1,740 +1,11 @@
-                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="backupTableBody">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Settings Tab -->
-                    <div id="settings" class="tab-panel">
-                        <h2>Settings</h2>
-
-                        <!-- User Management Section -->
-                        <div class="settings-section">
-                            <h3>👥 User Management</h3>
-                            
-                            <!-- Add New User Form -->
-                            <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                                <h4>Add New User</h4>
-                                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                                    <input type="text" id="newUsername" class="form-control" placeholder="Username" style="width: 150px;">
-                                    <input type="password" id="newPassword" class="form-control" placeholder="Password" style="width: 150px;">
-                                    <select id="newUserRole" class="form-control" style="width: 120px;">
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
-                                        <option value="agent">Agent</option>
-                                        <option value="executive">Executive</option>
-                                    </select>
-                                    <button onclick="addUser()" class="btn-add">+</button>
-                                </div>
-                            </div>
-
-                            <!-- Users Table -->
-                            <table class="user-table" id="usersTable">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Role</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="usersTableBody">
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Change Password Section -->
-                        <div class="settings-section">
-                            <h3>🔐 Change Password</h3>
-                            <div style="background: white; padding: 1.5rem; border-radius: 8px;">
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label>Current Password</label>
-                                    <input type="password" id="currentPassword" class="form-control">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label>New Password</label>
-                                    <input type="password" id="newPassword" class="form-control">
-                                </div>
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label>Confirm New Password</label>
-                                    <input type="password" id="confirmPassword" class="form-control">
-                                </div>
-                                <button onclick="updatePassword()" class="btn btn-primary">📝 Update Password</button>
-                            </div>
-                        </div>
-
-                        <!-- Data Management Section -->
-                        <div class="settings-section">
-                            <h3>💾 Data Management</h3>
-                            <div class="data-management">
-                                <button onclick="createBackup()" class="btn btn-success">⬇️ Create Backup</button>
-                                <button onclick="showImportModal()" class="btn btn-info">⬆️ Import / Restore</button>
-                                <button onclick="clearAllData()" class="btn btn-danger">🗑️ Clear All Data</button>
-                            </div>
-                        </div>
-
-                        <!-- System Information -->
-                        <div class="settings-section">
-                            <h3>ℹ️ System Information</h3>
-                            <div class="system-info">
-                                <div class="info-card">
-                                    <div class="info-value" id="totalRecords">0</div>
-                                    <div class="info-label">Total Records</div>
-                                </div>
-                                <div class="info-card">
-                                    <div class="info-value">2.0.0</div>
-                                    <div class="info-label">App Version</div>
-                                </div>
-                                <div class="info-card">
-                                    <div class="info-value" id="dbConnection" style="color: #27ae60;">Connected</div>
-                                    <div class="info-label">Database Connection</div>
-                                </div>
-                            </div>
-                            <button onclick="showAbout()" class="btn btn-info" style="margin-top: 1rem; width: 100%;">ℹ️ About This Application</button>
-                        </div>
-                    </div>
-
-                    <!-- About Tab -->
-                    <div id="about" class="tab-panel">
-                        <div style="text-align: center; padding: 2rem;">
-                            <h1>Agreement Manager</h1>
-                            <h3 style="color: #3498db; margin-bottom: 2rem;">Cloud-Based Agreement Management System</h3>
-                            
-                            <div style="background: #f8f9fa; padding: 2rem; border-radius: 10px; text-align: left; max-width: 800px; margin: 0 auto;">
-                                <h3>Software Overview</h3>
-                                <p>Agreement Manager is an advanced cloud-based web application designed to streamline the management of client agreements. This powerful tool offers a comprehensive suite of features to help you efficiently track, update, and report on agreements, payments, and pending amounts.</p>
-
-                                <h4 style="margin-top: 2rem;">Key Features:</h4>
-                                <ul style="line-height: 1.8;">
-                                    <li><strong>User-Friendly Interface:</strong> Intuitive, modern web UI that simplifies daily operations.</li>
-                                    <li><strong>Cloud-Based Storage:</strong> Secure data storage with real-time synchronization.</li>
-                                    <li><strong>Multi-User Support:</strong> Admin and User roles with appropriate access controls.</li>
-                                    <li><strong>Automated Email Reminders:</strong> Stay ahead of renewals with automatic notifications.</li>
-                                    <li><strong>Dynamic Reporting:</strong> Generate detailed reports with various filtering options.</li>
-                                    <li><strong>Profit Management:</strong> Track revenue, expenses, and calculate profits.</li>
-                                    <li><strong>Data Import/Export:</strong> Seamlessly import from Excel and export reports.</li>
-                                    <li><strong>Automated Backups:</strong> Protect your data with scheduled backups.</li>
-                                    <li><strong>Responsive Design:</strong> Works on desktop, tablet, and mobile devices.</li>
-                                </ul>
-
-                                <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #ddd;">
-                                    <p><strong>Developed by:</strong> Mr. Anagh R. Shetty</p>
-                                    <p><strong>Alumni:</strong> IIT Kharagpur</p>
-                                    <p><strong>Contact:</strong> anagh.iitkgp@hotmail.com</p>
-                                    <p style="margin-top: 1rem; color: #666;">Version 2.0 - Cloud Edition</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Import Modal -->
-    <div id="importModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000;">
-        <div style="background: white; margin: 10% auto; padding: 2rem; width: 80%; max-width: 500px; border-radius: 10px;">
-            <h3>Import / Restore Data</h3>
-            <div class="form-group">
-                <label>Select Backup File</label>
-                <input type="file" id="importFile" class="form-control" accept=".json">
-            </div>
-            <div class="button-group">
-                <button onclick="importData()" class="btn btn-primary">Import</button>
-                <button onclick="closeImportModal()" class="btn btn-secondary">Cancel</button>
-            </div>
-        </div>
-    </div>
-<script>
-    // Cloud-based API functions
-    const API_BASE_URL = '/api';
-    let authToken = localStorage.getItem('authToken');
-    let currentUser = null;
-
-    // Authentication functions
-    async function login() {
-        console.log('Login function called');
-        
-        const usernameInput = document.getElementById('loginUsername');
-        const passwordInput = document.getElementById('loginPassword');
-        
-        if (!usernameInput || !passwordInput) {
-            console.error('Login inputs not found');
-            showNotification('Login form not found', 'error');
-            return;
-        }
-        
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value.trim();
-        
-        console.log('Login attempt for username:', username);
-        
-        if (!username || !password) {
-            showNotification('Please enter both username and password', 'warning');
-            return;
-        }
-
-        // Show loading state
-        const loginBtn = document.getElementById('loginBtn');
-        const originalText = loginBtn.textContent;
-        loginBtn.textContent = 'Logging in...';
-        loginBtn.disabled = true;
-
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password })
-            });
-
-            const responseData = await response.json();
-            console.log('Login response:', responseData);
-
-            if (response.ok) {
-                console.log('Login successful');
-                
-                // Store user info and token
-                authToken = responseData.user.token;
-                localStorage.setItem('authToken', authToken);
-                localStorage.setItem('currentUser', JSON.stringify(responseData.user));
-                currentUser = responseData.user;
-                
-                showNotification('Login successful!', 'success');
-                
-                // UI changes
-                const loginContainer = document.getElementById('loginContainer');
-                const mainApp = document.getElementById('mainApp');
-                
-                if (loginContainer) loginContainer.style.display = 'none';
-                if (mainApp) mainApp.style.display = 'block';
-                
-                // Update UI elements
-                const currentUserElement = document.getElementById('currentUser');
-                const userRoleElement = document.getElementById('userRole');
-                
-                if (currentUserElement) {
-                    currentUserElement.textContent = responseData.user.username;
-                }
-                
-                if (userRoleElement) {
-                    userRoleElement.textContent = responseData.user.role;
-                    userRoleElement.className = `role-badge ${responseData.user.role}`;
-                }
-                
-                // Hide settings tab for non-admin users
-                if (responseData.user.role !== 'admin') {
-                    const settingsTab = document.getElementById('settingsTab');
-                    if (settingsTab) settingsTab.style.display = 'none';
-                }
-                
-                // Load initial data
-                await loadAgreements();
-                await loadUsers();
-                updateSystemInfo();
-                
-            } else {
-                throw new Error(responseData.error || 'Login failed');
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-            showNotification(error.message || 'Login failed', 'error');
-        } finally {
-            loginBtn.textContent = originalText;
-            loginBtn.disabled = false;
-        }
-    }
-
-    function logout() {
-        if (confirm('Are you sure you want to logout?')) {
-            currentUser = null;
-            authToken = null;
-            
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('currentUser');
-            
-            document.getElementById('loginContainer').style.display = 'flex';
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            showNotification('Logged out successfully', 'info');
-        }
-    }
-
-    // Check authentication on page load
-    function checkAuth() {
-        const token = localStorage.getItem('authToken');
-        const savedUser = localStorage.getItem('currentUser');
-        
-        if (token && savedUser) {
-            try {
-                authToken = token;
-                currentUser = JSON.parse(savedUser);
-                
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-                
-                document.getElementById('currentUser').textContent = currentUser.username;
-                document.getElementById('userRole').textContent = currentUser.role;
-                document.getElementById('userRole').className = `role-badge ${currentUser.role}`;
-                
-                if (currentUser.role !== 'admin') {
-                    const settingsTab = document.getElementById('settingsTab');
-                    if (settingsTab) settingsTab.style.display = 'none';
-                }
-                
-                loadAgreements();
-                loadUsers();
-                updateSystemInfo();
-            } catch (error) {
-                console.error('Auto-login failed:', error);
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('currentUser');
-            }
-        }
-    }
-
-    // API helper function
-    async function apiCall(endpoint, options = {}) {
-        try {
-            const headers = {
-                'Content-Type': 'application/json',
-                ...options.headers
-            };
-
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
-
-            const defaultOptions = { headers };
-            const response = await fetch(`/api${endpoint}`, { ...options, ...defaultOptions });
-            
-            if (response.status === 401) {
-                logout();
-                throw new Error('Authentication required');
-            }
-            
-            return response;
-        } catch (error) {
-            console.error('API call error:', error);
-            showNotification('Network error. Please try again.', 'error');
-            throw error;
-        }
-    }
-
-    // Load agreements function
-    async function loadAgreements() {
-        try {
-            console.log('Loading agreements...');
-            const response = await apiCall('/agreements');
-            const data = await response.json();
-            
-            const agreements = Array.isArray(data) ? data : (data.agreements || []);
-            displayAgreements(agreements);
-        } catch (error) {
-            console.error('Error loading agreements:', error);
-            showNotification('Error loading agreements', 'error');
-            displayAgreements([]);
-        }
-    }
-
-    // Display agreements function
-    function displayAgreements(agreements) {
-        try {
-            const tbody = document.getElementById('agreementsTableBody');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-
-            if (!agreements || agreements.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="24" style="text-align: center; padding: 20px; color: #666;">
-                            No agreements found. Click "Add Agreement" to create your first agreement.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            agreements.forEach(agreement => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><input type="checkbox" value="${agreement.id}"></td>
-                    <td>${agreement.id}</td>
-                    <td>${escapeHtml(agreement.owner_name || '-')}</td>
-                    <td>${escapeHtml(agreement.location || '-')}</td>
-                    <td>${escapeHtml(agreement.token_number || '-')}</td>
-                    <td>${escapeHtml(agreement.password || '-')}</td>
-                    <td>${escapeHtml(agreement.owner_contact || '-')}</td>
-                    <td>${escapeHtml(agreement.tenant_contact || '-')}</td>
-                    <td>${escapeHtml(agreement.email || '-')}</td>
-                    <td>${formatDate(agreement.expiry_date)}</td>
-                    <td>${formatDate(agreement.reminder_date)}</td>
-                    <td>${escapeHtml(agreement.cc_email || '-')}</td>
-                    <td>${escapeHtml(agreement.staff_name || '-')}</td>
-                    <td>₹${(agreement.total_payment || 0).toFixed(2)}</td>
-                    <td>₹${(agreement.payment_owner || 0).toFixed(2)}</td>
-                    <td>${formatDate(agreement.payment_date1)}</td>
-                    <td>${formatDate(agreement.payment_date2)}</td>
-                    <td>₹${(agreement.payment_tenant || 0).toFixed(2)}</td>
-                    <td>₹${(agreement.payment_due || 0).toFixed(2)}</td>
-                    <td>${agreement.sent_reminder ? 'Yes' : 'No'}</td>
-                    <td>${escapeHtml(agreement.agreement_status || '-')}</td>
-                    <td>${escapeHtml(agreement.agent_name || '-')}</td>
-                    <td>${formatDate(agreement.biometric_date)}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick="editAgreement(${agreement.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteAgreement(${agreement.id})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error displaying agreements:', error);
-            showNotification('Error displaying agreements', 'error');
-        }
-    }
-
-    // Add agreement function
-    async function addAgreement() {
-        const ownerName = document.getElementById('ownerName')?.value?.trim();
-        const location = document.getElementById('location')?.value?.trim();
-        const tokenNumber = document.getElementById('tokenNumber')?.value?.trim();
-        
-        if (!ownerName || !location || !tokenNumber) {
-            showNotification('Please fill in required fields: Owner Name, Location, Token Number', 'warning');
-            return;
-        }
-
-        const agreementData = {
-            ownerName,
-            location,
-            tokenNumber,
-            password: document.getElementById('password')?.value || '',
-            agreementDate: document.getElementById('agreementDate')?.value || null,
-            ownerContact: document.getElementById('ownerContact')?.value || '',
-            tenantContact: document.getElementById('tenantContact')?.value || '',
-            email: document.getElementById('email')?.value || '',
-            expiryDate: document.getElementById('expiryDate')?.value || null,
-            reminderDate: document.getElementById('reminderDate')?.value || null,
-            ccEmail: document.getElementById('ccEmail')?.value || 'support@ramnathshetty.com',
-            agentName: document.getElementById('agentName')?.value || '',
-            totalPayment: parseFloat(document.getElementById('totalPayment')?.value) || 0,
-            paymentOwner: parseFloat(document.getElementById('ownerPayment')?.value) || 0,
-            paymentTenant: parseFloat(document.getElementById('tenantPayment')?.value) || 0,
-            paymentDue: parseFloat(document.getElementById('paymentDue')?.value) || 0,
-            agreementStatus: document.getElementById('agreementStatus')?.value || 'Drafted',
-            biometricDate: document.getElementById('biometricDate')?.value || null
-        };
-
-        try {
-            showNotification('Saving agreement...', 'warning');
-            
-            const response = await apiCall('/agreements', {
-                method: 'POST',
-                body: JSON.stringify(agreementData)
-            });
-
-            if (response.ok) {
-                showNotification('Agreement saved successfully!', 'success');
-                clearForm();
-                await loadAgreements();
-                updateSystemInfo();
-            } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to save agreement');
-            }
-        } catch (error) {
-            console.error('Save agreement error:', error);
-            showNotification(error.message || 'Error saving agreement', 'error');
-        }
-    }
-
-    // Clear form function
-    function clearForm() {
-        const formElements = [
-            'ownerName', 'location', 'tokenNumber', 'password', 'agreementDate',
-            'ownerContact', 'tenantContact', 'email', 'expiryDate', 'reminderDate',
-            'staffName', 'totalPayment', 'ownerPayment', 'tenantPayment', 'paymentDue', 'biometricDate'
-        ];
-        
-        formElements.forEach(id => {
-            const element = document.getElementById(id);
-            if (element && element.id !== 'ccEmail') {
-                if (element.type === 'date') {
-                    element.value = new Date().toISOString().split('T')[0];
-                } else {
-                    element.value = '';
-                }
-            }
-        });
-
-        document.getElementById('ccEmail').value = 'support@ramnathshetty.com';
-        document.getElementById('agreementStatus').value = 'Drafted';
-    }
-
-    // Calculate payment due
-    function calculatePaymentDue() {
-        const total = parseFloat(document.getElementById('totalPayment')?.value) || 0;
-        const ownerPaid = parseFloat(document.getElementById('ownerPayment')?.value) || 0;
-        const tenantPaid = parseFloat(document.getElementById('tenantPayment')?.value) || 0;
-        const due = total - (ownerPaid + tenantPaid);
-        
-        const paymentDueElement = document.getElementById('paymentDue');
-        if (paymentDueElement) {
-            paymentDueElement.value = due.toFixed(2);
-        }
-    }
-
-    // Delete agreement function
-    async function deleteAgreement(id) {
-        if (!confirm('Are you sure you want to delete this agreement?')) {
-            return;
-        }
-
-        try {
-            const response = await apiCall(`/agreements/${id}`, {
-                method: 'DELETE'
-            });
-
-            if (response.ok) {
-                showNotification('Agreement deleted successfully!', 'success');
-                await loadAgreements();
-                updateSystemInfo();
-            } else {
-                throw new Error('Failed to delete agreement');
-            }
-        } catch (error) {
-            showNotification('Error deleting agreement', 'error');
-        }
-    }
-
-    // User management functions
-    async function loadUsers() {
-        if (currentUser?.role !== 'admin') return;
-
-        try {
-            const response = await apiCall('/users');
-            const users = await response.json();
-            
-            const tbody = document.getElementById('usersTableBody');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${escapeHtml(user.username)}</td>
-                    <td><span class="role-tag ${user.role}">${user.role}</span></td>
-                    <td>
-                        <button onclick="deleteUser(${user.id}, '${escapeHtml(user.username)}')" class="btn btn-danger btn-sm" ${user.username === 'admin' ? 'disabled' : ''}>Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error loading users:', error);
-        }
-    }
-
-    async function addUser() {
-        const username = document.getElementById('newUsername')?.value?.trim();
-        const password = document.getElementById('newPassword')?.value?.trim();
-        const role = document.getElementById('newUserRole')?.value;
-
-        if (!username || !password) {
-            showNotification('Please enter username and password', 'warning');
-            return;
-        }
-
-        try {
-            const response = await apiCall('/users', {
-                method: 'POST',
-                body: JSON.stringify({ username, password, role })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                showNotification(`User "${data.username}" created successfully!`, 'success');
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newPassword').value = '';
-                document.getElementById('newUserRole').value = 'user';
-                await loadUsers();
-            } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to add user');
-            }
-        } catch (error) {
-            showNotification(error.message, 'error');
-        }
-    }
-
-    async function deleteUser(id, username) {
-        if (username === 'admin') {
-            showNotification('Cannot delete admin user', 'error');
-            return;
-        }
-
-        if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
-            return;
-        }
-
-        try {
-            const response = await apiCall(`/users/${id}`, { method: 'DELETE' });
-            
-            if (response.status === 204) {
-                showNotification(`User "${username}" deleted successfully.`, 'success');
-                await loadUsers();
-            } else {
-                throw new Error('Failed to delete user');
-            }
-        } catch (error) {
-            showNotification(error.message, 'error');
-        }
-    }
-
-    // System info update
-    function updateSystemInfo() {
-        const totalRecordsElement = document.getElementById('totalRecords');
-        if (totalRecordsElement) {
-            // This would need to be fetched from API or calculated from loaded data
-            totalRecordsElement.textContent = '0'; // Placeholder
-        }
-    }
-
-    // Utility functions
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
-    }
-
-    // Notification function
-    function showNotification(message, type = 'info') {
-        // Remove existing notifications
-        document.querySelectorAll('.notification').forEach(n => n.remove());
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 4000);
-    }
-
-    // Tab management
-    function showTab(tabName) {
-        // Check permissions
-        if (tabName === 'settings' && (!currentUser || currentUser.role !== 'admin')) {
-            showNotification('Access denied. Admin privileges required.', 'error');
-            return;
-        }
-
-        // Hide all panels
-        document.querySelectorAll('.tab-panel').forEach(panel => {
-            panel.classList.remove('active');
-        });
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.classList.remove('active');
-        });
-
-        // Show selected panel
-        const panel = document.getElementById(tabName);
-        if (panel) {
-            panel.classList.add('active');
-        }
-        
-        // Activate button
-        if (event && event.target) {
-            event.target.classList.add('active');
-        }
-
-        // Load data based on tab
-        if (tabName === 'agreements') {
-            loadAgreements();
-        } else if (tabName === 'settings') {
-            loadUsers();
-        }
-    }
-
-    // Initialize the application
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM Content Loaded - Initializing application...');
-        
-        // Set today's date as default
-        const today = new Date().toISOString().split('T')[0];
-        document.querySelectorAll('input[type="date"]').forEach(input => {
-            if (!input.value) input.value = today;
-        });
-
-        // Setup event listeners
-        const loginBtn = document.getElementById('loginBtn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                login();
-            });
-        }
-
-        // Enter key for login
-        ['loginUsername', 'loginPassword'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        login();
-                    }
-                });
-            }
-        });
-
-        // Logout
-        document.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'logoutBtn') {
-                logout();
-            }
-        });
-
-        // Payment calculation
-        ['totalPayment', 'ownerPayment', 'tenantPayment'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('input', calculatePaymentDue);
-            }
-        });
-
-        checkAuth();
-        console.log('Application initialization complete');
-    });
-</script>    
-</body>
-</html><!DOCTYPE html>
+ <!DOCTYPE html>   
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agreement Manager - Cloud Application</title>
+	 <title>Agreement Manager - Cloud Application</title>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">  
     <style>
         * {
             margin: 0;
@@ -1249,11 +520,11 @@
                 <!-- Tab Navigation -->
                 <div class="tab-nav">
                     <button class="tab-button active" onclick="showTab('agreements')">Agreements</button>
-                    <button class="tab-button" onclick="showTab('backup')">Backup</button>
                     <button class="tab-button" onclick="showTab('reports')">Reports</button>
-                    <button class="tab-button" onclick="showTab('about')">About</button>
                     <button class="tab-button" onclick="showTab('profit')">Profit</button>
+                    <button class="tab-button" onclick="showTab('backup')">Backup</button>
                     <button class="tab-button" onclick="showTab('settings')" id="settingsTab">Settings</button>
+                    <button class="tab-button" onclick="showTab('about')">About</button>
                 </div>
 
                 <!-- Tab Content -->
@@ -1317,19 +588,19 @@
                                 <input type="number" id="totalPayment" class="form-control" step="0.01">
                             </div>
                             <div class="form-group">
-                                <label>Pymnt Rcvd from Owner:</label>
+                                <label>Payment Received from Owner:</label>
                                 <input type="number" id="ownerPayment" class="form-control" step="0.01">
                             </div>
                             <div class="form-group">
-                                <label>Pymt Rcvd Dt1:</label>
+                                <label>Payment Date 1:</label>
                                 <input type="date" id="paymentDate1" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label>Pymt Rcvd Dt2:</label>
+                                <label>Payment Date 2:</label>
                                 <input type="date" id="paymentDate2" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label>Pymnt Rcvd from Tenant:</label>
+                                <label>Payment Received from Tenant:</label>
                                 <input type="number" id="tenantPayment" class="form-control" step="0.01">
                             </div>
                             <div class="form-group">
@@ -1413,10 +684,10 @@
                                         <th>CC Email</th>
                                         <th>Staff Name</th>
                                         <th>Total Payment</th>
-                                        <th>Amt Rcvd from Owner</th>
-                                        <th>Pymt Rcvd Dt1</th>
-                                        <th>Pymt Rcvd Dt2</th>
-                                        <th>Amt Rcvd from Tenant</th>
+                                        <th>Amount Received from Owner</th>
+                                        <th>Payment Date 1</th>
+                                        <th>Payment Date 2</th>
+                                        <th>Amount Received from Tenant</th>
                                         <th>Payment Due</th>
                                         <th>Sent Reminder</th>
                                         <th>Agreement Status</th>
@@ -1569,21 +840,1171 @@
                     <!-- Backup Tab -->
                     <div id="backup" class="tab-panel">
                         <h2>Backup Management</h2>
-                        
-                        <!-- Backup Actions -->
-                        <div class="button-group">
-                            <button onclick="createBackup()" class="btn btn-primary">Backup Now</button>
-                            <button onclick="showImportModal()" class="btn btn-info">Import/Restore</button>
-                        </div>
 
-                        <!-- Backup History -->
-                        <div style="margin-top: 2rem;">
-                            <h3>Backup History</h3>
-                            <div style="overflow-x: auto;">
-                                <table class="data-table" id="backupTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Backup Date</th>
-                                            <th>File Size</th>
-                                            <th>Records Count</th>
-                                            
+					<!-- Backup Actions -->
+                       <div class="button-group">
+                           <button onclick="createBackup()" class="btn btn-primary">Backup Now</button>
+                           <button onclick="showImportModal()" class="btn btn-info">Import/Restore</button>
+                       </div>
+
+                       <!-- Backup History -->
+                       <div style="margin-top: 2rem;">
+                           <h3>Backup History</h3>
+                           <div style="overflow-x: auto;">
+                               <table class="data-table" id="backupTable">
+                                   <thead>
+                                       <tr>
+                                           <th>Backup Date</th>
+                                           <th>File Size</th>
+                                           <th>Records Count</th>
+							           </tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td colspan="4" style="text-align: center;">No backup history available</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<!-- Clear All Data (Admin Only) -->
+						<div style="margin-top: 2rem;">
+							<h3>Danger Zone</h3>
+							<button onclick="clearAllData()" class="btn btn-danger">Clear All Data</button>
+							<p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+									Warning: This will delete all agreements and user data (except admin account).
+							</p>
+						</div>
+					</div>
+
+					<!-- Settings Tab -->
+					<div id="settings" class="tab-panel">
+						<h2>System Settings</h2>
+							
+						<!-- User Management -->
+						<div class="settings-section">
+							<h3>User Management</h3>
+							<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+								<div class="form-group">
+									<label>Username:</label>
+									<input type="text" id="newUsername" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>Password:</label>
+									<input type="password" id="newUserPassword" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>Role:</label>
+									<select id="newUserRole" class="form-control">
+										<option value="user">User</option>
+										<option value="admin">Admin</option>
+										<option value="agent">Agent</option>
+										<option value="executive">Executive</option>
+									</select>
+								</div>
+								<div class="form-group" style="justify-content: flex-end;">
+									<button onclick="addUser()" class="btn btn-success" style="margin-top: 1.5rem;">Add User</button>
+							</div>
+						 </div>
+
+							<!-- Users Table -->
+							<div class="user-table">
+								<table style="width: 100%;">
+									<thead>
+										<tr>
+											<th>Username</th>
+											<th>Role</th>
+											<th>Actions</th>
+										</tr>
+									</thead>
+									<tbody id="usersTableBody">
+									</tbody>
+								</table>
+							</div>
+						</div>
+
+						<!-- Password Change -->
+						<div class="settings-section">
+							<h3>Change Password</h3>
+							<div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+								<div class="form-group">
+									<label>Current Password:</label>
+									<input type="password" id="currentPassword" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>New Password:</label>
+									<input type="password" id="changeNewPassword" class="form-control">
+								</div>
+								<div class="form-group">
+									<label>Confirm New Password:</label>
+									<input type="password" id="confirmPassword" class="form-control">
+								</div>
+							</div>
+							<button onclick="updatePassword()" class="btn btn-primary">Update Password</button>
+						</div>
+
+						<!-- System Information -->
+						<div class="settings-section">
+							<h3>System Information</h3>
+							<div class="system-info">
+								<div class="info-card">
+									<div class="info-value" id="totalRecords">0</div>
+									<div class="info-label">Total Agreements</div>
+								</div>
+								<div class="info-card">
+									<div class="info-value" id="dbConnection">Unknown</div>
+									<div class="info-label">Database Status</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- About Tab -->
+					<div id="about" class="tab-panel">
+						<h2>About Agreement Manager</h2>
+						<div class="settings-section">
+							<h3>Version 2.0.0</h3>
+							<p>Cloud-enabled Agreement Management System</p>
+							<p><strong>Developed by:</strong> Shetty Legal Advisors</p>
+							<p><strong>Features:</strong></p>
+							<ul>
+								<li>Complete agreement lifecycle management</li>
+								<li>Multi-user support with role-based access</li>
+								<li>Advanced reporting and analytics</li>
+								<li>Profit tracking and calculation</li>
+								<li>Automated backup and restore</li>
+								<li>Cloud-ready architecture</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>                        
+                        
+		<!-- Import Modal -->
+	<div id="importModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000;">
+		<div style="background: white; margin: 10% auto; padding: 2rem; border-radius: 10px; width: 90%; max-width: 500px;">
+			<h3>Import Backup</h3>
+			<input type="file" id="importFile" accept=".json" class="form-control" style="margin: 1rem 0;">
+			<div class="button-group">
+				<button onclick="importData()" class="btn btn-primary">Import</button>
+				<button onclick="closeImportModal()" class="btn btn-secondary">Cancel</button>
+			</div>
+		</div>
+	</div>		
+		
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        const API_BASE_URL = '/api';
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+        let agreements = [];
+        let users = [];
+        let currentEditingId = null;
+
+        // API helper function
+        async function apiCall(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                },
+                ...options
+            };
+
+            if (config.body && typeof config.body === 'object') {
+                config.body = JSON.stringify(config.body);
+            }
+
+            const response = await fetch(url, config);
+            
+            if (response.status === 401) {
+                logout();
+                throw new Error('Authentication required');
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            return response.json();
+        }
+
+        // Authentication functions
+        async function login() {
+			const usernameInput = document.getElementById('loginUsername');
+			const passwordInput = document.getElementById('loginPassword');
+			
+			const username = usernameInput.value.trim();
+			const password = passwordInput.value.trim();
+			
+			if (!username || !password) {
+				showNotification('Please enter both username and password', 'warning');
+				return;
+			}
+
+			const loginBtn = document.getElementById('loginBtn');
+			const originalText = loginBtn.textContent;
+			loginBtn.textContent = 'Logging in...';
+			loginBtn.disabled = true;
+
+			try {
+				const response = await apiCall('/auth/login', {
+					method: 'POST',
+					body: { username, password }
+				});
+
+				currentUser = response.user;
+				authToken = response.user.token;
+				localStorage.setItem('authToken', authToken);
+				localStorage.setItem('currentUser', JSON.stringify(response.user));
+				
+				// Show main app and hide login
+				document.getElementById('loginContainer').style.display = 'none';
+				document.getElementById('mainApp').style.display = 'block';
+				
+				// Update UI elements
+				document.getElementById('currentUser').textContent = response.user.username;
+				document.getElementById('userRole').textContent = response.user.role;
+				document.getElementById('userRole').className = `role-badge ${response.user.role}`;
+				
+				// Hide settings tab for non-admin users
+				if (response.user.role !== 'admin') {
+					document.getElementById('settingsTab').style.display = 'none';
+				}
+				
+				showNotification('Login successful!', 'success');
+				await loadAgreements();
+				await updateProfitSummary();
+				
+				// Fixed: Added missing closing brace and proper structure
+				if (response.user.role === 'admin') {
+					await loadUsers();
+				}
+			} catch (error) {
+				showNotification(error.message, 'error');
+			} finally {
+				loginBtn.textContent = originalText;
+				loginBtn.disabled = false;
+			}
+		}
+
+        async function updatePassword() {
+            const currentPassword = document.getElementById('currentPassword')?.value?.trim();
+            const newPassword = document.getElementById('changeNewPassword')?.value?.trim();
+            const confirmPassword = document.getElementById('confirmPassword')?.value?.trim();
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showNotification('Please fill in all password fields', 'warning');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showNotification('New passwords do not match', 'error');
+                return;
+            }
+
+            try {
+                await apiCall('/auth/change-password', {
+                    method: 'PUT',
+                    body: { currentPassword, newPassword }
+                });
+
+                showNotification('Password updated successfully!', 'success');
+                // Clear password fields
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('changeNewPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+
+        // Report functions
+        async function generateReportByAgent() {
+            const agent = document.getElementById('reportAgent').value;
+            if (!agent) {
+                showNotification('Please select an agent', 'warning');
+                return;
+            }
+            await generateReport({ agentName: agent });
+        }
+
+        async function generateReportByOwner() {
+            const owner = document.getElementById('reportOwner').value;
+            if (!owner) {
+                showNotification('Please select an owner', 'warning');
+                return;
+            }
+            await generateReport({ ownerName: owner });
+        }
+
+        async function generateExpiringReport() {
+            const fromDate = document.getElementById('expiryFromDate').value;
+            const toDate = document.getElementById('expiryToDate').value;
+            if (!fromDate || !toDate) {
+                showNotification('Please select both from and to dates', 'warning');
+                return;
+            }
+            await generateReport({ expiryFromDate: fromDate, expiryToDate: toDate });
+        }
+
+        async function generatePendingReport() {
+            const pendingFilter = document.getElementById('pendingAmountFilter').value;
+            if (!pendingFilter) {
+                showNotification('Please select a pending amount condition', 'warning');
+                return;
+            }
+            await generateReport({ pendingAmount: pendingFilter });
+        }
+
+        async function generateReport(filters = {}) {
+            try {
+                const queryParams = new URLSearchParams(filters).toString();
+                const response = await apiCall(`/reports?${queryParams}`);
+                displayReport(response);
+            } catch (error) {
+                showNotification('Error generating report', 'error');
+            }
+        }
+
+        function displayReport(agreements) {
+            const tbody = document.getElementById('reportTableBody');
+            const table = document.getElementById('reportTable');
+            
+            if (!tbody || !table) return;
+            
+            tbody.innerHTML = '';
+            
+            if (!agreements || agreements.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No records found</td></tr>';
+                table.style.display = 'table';
+                return;
+            }
+            
+            agreements.forEach(agreement => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(agreement.owner_name || '-')}</td>
+                    <td>${escapeHtml(agreement.token_number || '-')}</td>
+                    <td>${escapeHtml(agreement.location || '-')}</td>
+                    <td>₹${(agreement.payment_due || 0).toFixed(2)}</td>
+                    <td>${escapeHtml(agreement.agent_name || '-')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            table.style.display = 'table';
+        }
+
+        // Clear filter functions
+        function clearAgentFilter() {
+            document.getElementById('reportAgent').value = '';
+        }
+
+        function clearOwnerFilter() {
+            document.getElementById('reportOwner').value = '';
+        }
+
+        function clearExpiryFilter() {
+            document.getElementById('expiryFromDate').value = '';
+            document.getElementById('expiryToDate').value = '';
+        }
+
+        function clearPendingFilter() {
+            document.getElementById('pendingAmountFilter').value = '';
+        }
+
+        // Backup functions
+        async function createBackup() {
+            try {
+                const response = await apiCall('/backup/export');
+                
+                // Download as JSON file
+                const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `agreement-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification('Backup created and downloaded successfully', 'success');
+            } catch (error) {
+                showNotification('Error creating backup', 'error');
+            }
+        }
+
+        function showImportModal() {
+            document.getElementById('importModal').style.display = 'block';
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').style.display = 'none';
+            document.getElementById('importFile').value = '';
+        }
+
+        async function importData() {
+            const fileInput = document.getElementById('importFile');
+            if (!fileInput.files.length) {
+                showNotification('Please select a backup file', 'warning');
+                return;
+            }
+            
+            try {
+                const file = fileInput.files[0];
+                const text = await file.text();
+                const backupData = JSON.parse(text);
+                
+                await apiCall('/backup/import', {
+                    method: 'POST',
+                    body: backupData
+                });
+                
+                showNotification('Backup imported successfully', 'success');
+                closeImportModal();
+                await loadAgreements();
+                await loadUsers();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification('Error importing backup', 'error');
+            }
+        }
+
+        async function clearAllData() {
+            const confirmation = prompt('WARNING: This will permanently delete ALL agreements and user data (except admin). Type "DELETE ALL" to confirm:');
+            if (confirmation !== 'DELETE ALL') {
+                showNotification('Data deletion cancelled', 'info');
+                return;
+            }
+
+            try {
+                await apiCall('/agreements/clear-all', {
+                    method: 'DELETE'
+                });
+
+                showNotification('All data cleared successfully', 'success');
+                await loadAgreements();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification('Error clearing data: ' + error.message, 'error');
+            }
+        }
+
+        // System info update
+        async function updateSystemInfo() {
+            try {
+                const response = await apiCall('/system/info');
+                
+                document.getElementById('totalRecords').textContent = response.totalRecords;
+                document.getElementById('dbConnection').textContent = response.dbStatus;
+                document.getElementById('dbConnection').style.color = response.dbStatus === 'Connected' ? '#27ae60' : '#e74c3c';
+            } catch (error) {
+                console.error('Error updating system info:', error);
+            }
+        }
+
+        // Profit functions
+        async function generateProfitFromAgreements() {
+            try {
+                const response = await apiCall('/reports/profit');
+                displayProfitData(response);
+                updateProfitSummary(response);
+            } catch (error) {
+                showNotification('Error generating profit report', 'error');
+            }
+        }
+
+        function displayProfitData(profitData) {
+            const tbody = document.getElementById('profitTableBody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            profitData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(item.token_number || '-')}</td>
+                    <td>${escapeHtml(item.owner_name || '-')}</td>
+                    <td>₹${(item.revenue || 0).toFixed(2)}</td>
+                    <td>₹${(item.estimated_expenses || 0).toFixed(2)}</td>
+                    <td>₹${(item.profit || 0).toFixed(2)}</td>
+                    <td>${escapeHtml(item.agreement_status || '-')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function updateProfitSummary(profitData = null) {
+            if (!profitData) {
+                try {
+                    profitData = await apiCall('/reports/profit');
+                } catch (error) {
+                    console.error('Error loading profit data:', error);
+                    return;
+                }
+            }
+
+            const totalRevenue = profitData.reduce((sum, item) => sum + (item.revenue || 0), 0);
+            const totalExpenses = profitData.reduce((sum, item) => sum + (item.estimated_expenses || 0), 0);
+            const totalProfit = totalRevenue - totalExpenses;
+            
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+            document.getElementById('totalExpenses').textContent = `₹${totalExpenses.toFixed(2)}`;
+            document.getElementById('totalProfit').textContent = `₹${totalProfit.toFixed(2)}`;
+        }
+
+        // Populate owner dropdown for reports
+        function populateOwnerDropdown() {
+            const select = document.getElementById('reportOwner');
+            if (!select) return;
+            
+            // Clear existing options except first one
+            select.innerHTML = '<option value="">Select Owner</option>';
+            
+            const uniqueOwners = [...new Set(agreements.map(a => a.owner_name).filter(Boolean))];
+            uniqueOwners.forEach(owner => {
+                const option = document.createElement('option');
+                option.value = owner;
+                option.textContent = owner;
+                select.appendChild(option);
+            });
+        }
+
+        // Filter functions
+        function applyFilter() {
+            const filterType = document.getElementById('filterType').value;
+            const filterValue = document.getElementById('filterValue').value.toLowerCase().trim();
+            
+            if (!filterValue && filterType !== 'all') {
+                showNotification('Please enter a filter value', 'warning');
+                return;
+            }
+            
+            let filteredAgreements = agreements;
+            
+            if (filterType !== 'all' && filterValue) {
+                filteredAgreements = agreements.filter(agreement => {
+                    switch (filterType) {
+                        case 'name':
+                            return (agreement.owner_name || '').toLowerCase().includes(filterValue);
+                        case 'location':
+                            return (agreement.location || '').toLowerCase().includes(filterValue);
+                        case 'agent':
+                            return (agreement.agent_name || '').toLowerCase().includes(filterValue);
+                        case 'status':
+                            return (agreement.agreement_status || '').toLowerCase().includes(filterValue);
+                        case 'token':
+                            return (agreement.token_number || '').toLowerCase().includes(filterValue);
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            displayAgreements(filteredAgreements);
+        }
+
+        function resetFilter() {
+            document.getElementById('filterType').value = 'all';
+            document.getElementById('filterValue').value = '';
+            displayAgreements(agreements);
+        }
+
+        // Selection functions
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('#agreementsTableBody input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        function deleteSelected() {
+            const selected = Array.from(document.querySelectorAll('#agreementsTableBody input[type="checkbox"]:checked'))
+                .map(cb => cb.value);
+            
+            if (selected.length === 0) {
+                showNotification('Please select agreements to delete', 'warning');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete ${selected.length} agreement(s)?`)) {
+                showNotification('Bulk delete functionality will be implemented soon', 'info');
+            }
+        }
+
+        // Export functions
+        function exportToExcel() {
+            showNotification('Excel export functionality will be implemented soon', 'info');
+        }
+
+        function exportReport() {
+            showNotification('Report export functionality will be implemented soon', 'info');
+        }
+
+        function sendReminders() {
+            showNotification('Reminder functionality will be implemented soon', 'info');
+        }
+
+        // About function
+        function showAbout() {
+            showTab('about');
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            document.querySelectorAll('.notification').forEach(n => n.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 4000);
+        }
+
+        // Tab management
+        function showTab(tabName) {
+            // Check permissions
+            if (tabName === 'settings' && (!currentUser || currentUser.role !== 'admin')) {
+                showNotification('Access denied. Admin privileges required.', 'error');
+                return;
+            }
+
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected panel
+            const panel = document.getElementById(tabName);
+            if (panel) {
+                panel.classList.add('active');
+            }
+            
+            // Activate button - find the button that was clicked
+            event.target.classList.add('active');
+
+            // Load data based on tab
+            if (tabName === 'agreements') {
+                loadAgreements();
+            } else if (tabName === 'settings') {
+                loadUsers();
+            } else if (tabName === 'profit') {
+                updateProfitSummary();
+            }
+        }
+
+        // Connection status update
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            if (navigator.onLine) {
+                statusElement.textContent = 'Online';
+                statusElement.className = 'connection-status connected';
+            } else {
+                statusElement.textContent = 'Offline';
+                statusElement.className = 'connection-status disconnected';
+            }
+        }
+
+        
+        
+			// Logout button
+			const logoutBtn = document.getElementById('logoutBtn');
+			if (logoutBtn) {
+				logoutBtn.addEventListener('click', logout);
+			}
+
+			// Payment calculation
+			['totalPayment', 'ownerPayment', 'tenantPayment'].forEach(id => {
+				const element = document.getElementById(id);
+				if (element) {
+					element.addEventListener('input', calculatePaymentDue);
+				}
+			});
+
+			// Connection status
+			window.addEventListener('online', updateConnectionStatus);
+			window.addEventListener('offline', updateConnectionStatus);
+			updateConnectionStatus();
+
+			// Check authentication
+			checkAuth();
+			
+			console.log('Application initialization complete');
+		});
+
+		
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = null;
+                authToken = null;
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                showNotification('Logged out successfully', 'info');
+            }
+        }
+
+        // Check authentication on page load
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            const savedUser = localStorage.getItem('currentUser');
+            
+            if (token && savedUser) {
+                try {
+                    if (token.trim() === '' || token === 'undefined' || token === 'null') {
+                        throw new Error('Invalid token');
+                    }
+                    
+                    authToken = token;
+                    currentUser = JSON.parse(savedUser);
+                    
+                    if (!currentUser || !currentUser.username || !currentUser.role) {
+                        throw new Error('Invalid user data');
+                    }
+                    
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
+                    
+                    document.getElementById('currentUser').textContent = currentUser.username;
+                    document.getElementById('userRole').textContent = currentUser.role;
+                    document.getElementById('userRole').className = `role-badge ${currentUser.role}`;
+                    
+                    if (currentUser.role !== 'admin') {
+                        const settingsTab = document.getElementById('settingsTab');
+                        if (settingsTab) settingsTab.style.display = 'none';
+                    }
+                    
+                    loadAgreements();
+                    loadUsers();
+                    updateSystemInfo();
+                } catch (error) {
+                    console.error('Auto-login failed:', error);
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('currentUser');
+                    authToken = null;
+                    currentUser = null;
+                }
+            }
+        }
+
+        // Load agreements function
+        async function loadAgreements() {
+            try {
+                const response = await apiCall('/agreements');
+                agreements = response.agreements.map(agreement => ({
+                    ...agreement,
+                    ownerName: agreement.owner_name,
+                    tokenNumber: agreement.token_number,
+                    agreementDate: agreement.agreement_date,
+                    ownerContact: agreement.owner_contact,
+                    tenantContact: agreement.tenant_contact,
+                    expiryDate: agreement.expiry_date,
+                    reminderDate: agreement.reminder_date,
+                    ccEmail: agreement.cc_email,
+                    agentName: agreement.agent_name,
+                    totalPayment: parseFloat(agreement.total_payment) || 0,
+                    ownerPayment: parseFloat(agreement.payment_owner) || 0,
+                    tenantPayment: parseFloat(agreement.payment_tenant) || 0,
+                    paymentDue: parseFloat(agreement.payment_due) || 0,
+                    agreementStatus: agreement.agreement_status,
+                    biometricDate: agreement.biometric_date,
+                    createdAt: agreement.created_at
+                }));
+                
+                displayAgreements(agreements);
+                populateOwnerDropdown();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification('Failed to load agreements: ' + error.message, 'error');
+            }
+        }
+
+        // Display agreements function
+        function displayAgreements(agreements) {
+            try {
+                const tbody = document.getElementById('agreementsTableBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+
+                if (!agreements || agreements.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="24" style="text-align: center; padding: 20px; color: #666;">
+                                No agreements found. Click "Add Agreement" to create your first agreement.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                agreements.forEach(agreement => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" value="${agreement.id}"></td>
+                        <td>${agreement.id}</td>
+                        <td>${escapeHtml(agreement.owner_name || '-')}</td>
+                        <td>${escapeHtml(agreement.location || '-')}</td>
+                        <td>${escapeHtml(agreement.token_number || '-')}</td>
+                        <td>${escapeHtml(agreement.password || '-')}</td>
+                        <td>${escapeHtml(agreement.owner_contact || '-')}</td>
+                        <td>${escapeHtml(agreement.tenant_contact || '-')}</td>
+                        <td>${escapeHtml(agreement.email || '-')}</td>
+                        <td>${formatDate(agreement.expiry_date)}</td>
+                        <td>${formatDate(agreement.reminder_date)}</td>
+                        <td>${escapeHtml(agreement.cc_email || '-')}</td>
+                        <td>${escapeHtml(agreement.staff_name || '-')}</td>
+                        <td>₹${(agreement.total_payment || 0).toFixed(2)}</td>
+                        <td>₹${(agreement.payment_owner || 0).toFixed(2)}</td>
+                        <td>${formatDate(agreement.payment_date1)}</td>
+                        <td>${formatDate(agreement.payment_date2)}</td>
+                        <td>₹${(agreement.payment_tenant || 0).toFixed(2)}</td>
+                        <td>₹${(agreement.payment_due || 0).toFixed(2)}</td>
+                        <td>${agreement.sent_reminder ? 'Yes' : 'No'}</td>
+                        <td>${escapeHtml(agreement.agreement_status || '-')}</td>
+                        <td>${escapeHtml(agreement.agent_name || '-')}</td>
+                        <td>${formatDate(agreement.biometric_date)}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editAgreement(${agreement.id})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAgreement(${agreement.id})">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error displaying agreements:', error);
+                showNotification('Error displaying agreements', 'error');
+            }
+        }
+
+        // Add agreement function
+        async function addAgreement() {
+            const ownerName = document.getElementById('ownerName')?.value?.trim();
+            const location = document.getElementById('location')?.value?.trim();
+            const tokenNumber = document.getElementById('tokenNumber')?.value?.trim();
+            
+            if (!ownerName || !location || !tokenNumber) {
+                showNotification('Please fill in required fields: Owner Name, Location, Token Number', 'warning');
+                return;
+            }
+
+            const agreementData = {
+                ownerName,
+                location,
+                tokenNumber,
+                password: document.getElementById('password')?.value || '',
+                agreementDate: document.getElementById('agreementDate')?.value || null,
+                ownerContact: document.getElementById('ownerContact')?.value || '',
+                tenantContact: document.getElementById('tenantContact')?.value || '',
+                email: document.getElementById('email')?.value || '',
+                expiryDate: document.getElementById('expiryDate')?.value || null,
+                reminderDate: document.getElementById('reminderDate')?.value || null,
+                ccEmail: document.getElementById('ccEmail')?.value || 'support@ramnathshetty.com',
+                staffName: document.getElementById('staffName')?.value || '',
+                agentName: document.getElementById('agentName')?.value || '',
+                totalPayment: parseFloat(document.getElementById('totalPayment')?.value) || 0,
+                ownerPayment: parseFloat(document.getElementById('ownerPayment')?.value) || 0,
+                paymentDate1: document.getElementById('paymentDate1')?.value || null,
+                paymentDate2: document.getElementById('paymentDate2')?.value || null,
+                tenantPayment: parseFloat(document.getElementById('tenantPayment')?.value) || 0,
+                paymentDue: parseFloat(document.getElementById('paymentDue')?.value) || 0,
+                sentReminder: parseInt(document.getElementById('sentReminder')?.value) || 0,
+                agreementStatus: document.getElementById('agreementStatus')?.value || 'Drafted',
+                biometricDate: document.getElementById('biometricDate')?.value || null
+            };
+
+            try {
+                await apiCall('/agreements', {
+                    method: 'POST',
+                    body: agreementData
+                });
+                
+                await loadAgreements();
+                clearForm();
+                showNotification('Agreement added successfully!', 'success');
+            } catch (error) {
+                showNotification('Failed to add agreement: ' + error.message, 'error');
+            }
+        }
+
+        // Edit agreement function
+        async function editAgreement(id) {
+            try {
+                const response = await apiCall(`/agreements/${id}`);
+                const agreement = response;
+                
+                // Populate form with agreement data
+                document.getElementById('ownerName').value = agreement.owner_name || '';
+                document.getElementById('location').value = agreement.location || '';
+                document.getElementById('tokenNumber').value = agreement.token_number || '';
+                document.getElementById('password').value = agreement.password || '';
+                document.getElementById('agreementDate').value = agreement.agreement_date || '';
+                document.getElementById('ownerContact').value = agreement.owner_contact || '';
+                document.getElementById('tenantContact').value = agreement.tenant_contact || '';
+                document.getElementById('email').value = agreement.email || '';
+                document.getElementById('expiryDate').value = agreement.expiry_date || '';
+                document.getElementById('reminderDate').value = agreement.reminder_date || '';
+                document.getElementById('ccEmail').value = agreement.cc_email || '';
+                document.getElementById('staffName').value = agreement.staff_name || '';
+                document.getElementById('totalPayment').value = agreement.total_payment || '';
+                document.getElementById('ownerPayment').value = agreement.payment_owner || '';
+                document.getElementById('paymentDate1').value = agreement.payment_date1 || '';
+                document.getElementById('paymentDate2').value = agreement.payment_date2 || '';
+                document.getElementById('tenantPayment').value = agreement.payment_tenant || '';
+                document.getElementById('paymentDue').value = agreement.payment_due || '';
+                document.getElementById('sentReminder').value = agreement.sent_reminder || '0';
+                document.getElementById('agreementStatus').value = agreement.agreement_status || 'Drafted';
+                document.getElementById('agentName').value = agreement.agent_name || '';
+                document.getElementById('biometricDate').value = agreement.biometric_date || '';
+                
+                // Show update button, hide add button
+                document.getElementById('updateBtn').style.display = 'inline-block';
+                document.querySelector('button[onclick="addAgreement()"]').style.display = 'none';
+                
+                // Store current editing ID
+                currentEditingId = id;
+                
+            } catch (error) {
+                showNotification('Error loading agreement for editing', 'error');
+            }
+        }
+
+        // Update agreement function
+        async function updateAgreement() {
+            if (!currentEditingId) return;
+            
+            const ownerName = document.getElementById('ownerName')?.value?.trim();
+            const location = document.getElementById('location')?.value?.trim();
+            const tokenNumber = document.getElementById('tokenNumber')?.value?.trim();
+            
+            if (!ownerName || !location || !tokenNumber) {
+                showNotification('Please fill in required fields: Owner Name, Location, Token Number', 'warning');
+                return;
+            }
+
+            const agreementData = {
+                ownerName,
+                location,
+                tokenNumber,
+                password: document.getElementById('password')?.value || '',
+                agreementDate: document.getElementById('agreementDate')?.value || null,
+                ownerContact: document.getElementById('ownerContact')?.value || '',
+                tenantContact: document.getElementById('tenantContact')?.value || '',
+                email: document.getElementById('email')?.value || '',
+                expiryDate: document.getElementById('expiryDate')?.value || null,
+                reminderDate: document.getElementById('reminderDate')?.value || null,
+                ccEmail: document.getElementById('ccEmail')?.value || 'support@ramnathshetty.com',
+                staffName: document.getElementById('staffName')?.value || '',
+                agentName: document.getElementById('agentName')?.value || '',
+                totalPayment: parseFloat(document.getElementById('totalPayment')?.value) || 0,
+                ownerPayment: parseFloat(document.getElementById('ownerPayment')?.value) || 0,
+                paymentDate1: document.getElementById('paymentDate1')?.value || null,
+                paymentDate2: document.getElementById('paymentDate2')?.value || null,
+                tenantPayment: parseFloat(document.getElementById('tenantPayment')?.value) || 0,
+                paymentDue: parseFloat(document.getElementById('paymentDue')?.value) || 0,
+                sentReminder: parseInt(document.getElementById('sentReminder')?.value) || 0,
+                agreementStatus: document.getElementById('agreementStatus')?.value || 'Drafted',
+                biometricDate: document.getElementById('biometricDate')?.value || null
+            };
+
+            try {
+                await apiCall(`/agreements/${currentEditingId}`, {
+                    method: 'PUT',
+                    body: agreementData
+                });
+
+                showNotification('Agreement updated successfully!', 'success');
+                clearForm();
+                await loadAgreements();
+                updateSystemInfo();
+            } catch (error) {
+                showNotification(error.message || 'Error updating agreement', 'error');
+            }
+        }
+
+        // Clear form function
+        function clearForm() {
+            const formElements = [
+                'ownerName', 'location', 'tokenNumber', 'password', 'agreementDate',
+                'ownerContact', 'tenantContact', 'email', 'expiryDate', 'reminderDate',
+                'staffName', 'totalPayment', 'ownerPayment', 'paymentDate1', 'paymentDate2',
+                'tenantPayment', 'paymentDue', 'biometricDate'
+            ];
+            
+            formElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element && element.id !== 'ccEmail') {
+                    element.value = '';
+                }
+            });
+
+            document.getElementById('ccEmail').value = 'support@ramnathshetty.com';
+            document.getElementById('agreementStatus').value = 'Drafted';
+            document.getElementById('sentReminder').value = '0';
+            document.getElementById('agentName').value = '';
+            
+            // Reset buttons
+            document.getElementById('updateBtn').style.display = 'none';
+            document.querySelector('button[onclick="addAgreement()"]').style.display = 'inline-block';
+            currentEditingId = null;
+        }
+
+        // Delete agreement function
+        async function deleteAgreement(id) {
+            if (confirm('Are you sure you want to delete this agreement?')) {
+                try {
+                    await apiCall(`/agreements/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    await loadAgreements();
+                    showNotification('Agreement deleted successfully!', 'success');
+                } catch (error) {
+                    showNotification('Failed to delete agreement: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Calculate payment due
+        function calculatePaymentDue() {
+            const total = parseFloat(document.getElementById('totalPayment')?.value) || 0;
+            const ownerPaid = parseFloat(document.getElementById('ownerPayment')?.value) || 0;
+            const tenantPaid = parseFloat(document.getElementById('tenantPayment')?.value) || 0;
+            const due = total - (ownerPaid + tenantPaid);
+            
+            const paymentDueElement = document.getElementById('paymentDue');
+            if (paymentDueElement) {
+                paymentDueElement.value = due.toFixed(2);
+            }
+        }
+
+        // User management functions
+        async function loadUsers() {
+            if (currentUser?.role !== 'admin') return;
+            
+            try {
+                const response = await apiCall('/users');
+                users = response;
+                
+                const tbody = document.getElementById('usersTableBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td><span class="role-tag ${user.role}">${user.role}</span></td>
+                        <td>
+                            <button onclick="deleteUser(${user.id}, '${user.username}')" class="btn btn-danger btn-sm" ${user.username === 'admin' ? 'disabled' : ''}>🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                showNotification('Failed to load users: ' + error.message, 'error');
+            }
+        }
+
+        async function addUser() {
+            const username = document.getElementById('newUsername')?.value?.trim();
+            const password = document.getElementById('newUserPassword')?.value?.trim();
+            const role = document.getElementById('newUserRole')?.value;
+
+            if (!username || !password) {
+                showNotification('Please enter username and password', 'warning');
+                return;
+            }
+
+            try {
+                await apiCall('/users', {
+                    method: 'POST',
+                    body: { username, password, role }
+                });
+
+                showNotification(`User "${username}" created successfully!`, 'success');
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newUserPassword').value = '';
+                document.getElementById('newUserRole').value = 'user';
+                await loadUsers();
+            } catch (error) {
+                showNotification(error.message, 'error');
+            }
+        }
+		
+		async function deleteUser(id, username) {
+			if (username === 'admin') {
+				showNotification('Cannot delete admin user', 'error');
+				return;
+			}
+
+			if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+				return;
+			}
+
+			try {
+				await apiCall(`/users/${id}`, { method: 'DELETE' });
+				showNotification(`User "${username}" deleted successfully.`, 'success');
+				await loadUsers();
+			} catch (error) {
+				showNotification(error.message, 'error');
+			}
+		}
+		
+		// Initialize the application
+		document.addEventListener('DOMContentLoaded', function() {
+			console.log('DOM Content Loaded - Initializing application...');
+			
+			// Set today's date as default for date inputs
+			const today = new Date().toISOString().split('T')[0];
+			document.querySelectorAll('input[type="date"]').forEach(input => {
+				if (!input.value && input.id !== 'expiryFromDate' && input.id !== 'expiryToDate') {
+					input.value = today;
+				}
+			});
+		});
+	</script>
+</body>
+</html> 		
+           
+     
+	
