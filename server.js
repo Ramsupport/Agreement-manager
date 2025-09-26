@@ -576,9 +576,6 @@ app.get('/api/settings', authenticateToken, async (req, res) => {
   // ... route logic ...
 });
 
-// --- Automated Email Workflow ---  <-- A good place for it is right here
-const cron = require('node-cron');
-
 // Schedule a task to run at 9:00 AM every day.
 cron.schedule('0 9 * * *', () => {
   console.log('Running daily check for expiring agreements...');
