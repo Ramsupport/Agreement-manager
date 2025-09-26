@@ -723,10 +723,132 @@
                         </div>
                     </div>
 
-                    <!-- Other tabs simplified for space -->
+                    <!-- Reports Tab -->
                     <div id="reports" class="tab-panel">
-                        <h2>Reports</h2>
-                        <p>Reports functionality coming soon...</p>
+                        <h2>Select a filter to generate a report:</h2>
+                        
+                        <!-- Filter by Agent -->
+                        <div class="settings-section">
+                            <h4>Filter by Agent</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>Agent Name:</label>
+                                <select id="reportAgent" class="form-control" style="width: 200px;">
+                                    <option value="">Select Agent</option>
+                                    <option value="Ramnath">Ramnath</option>
+                                    <option value="Agent 1">Agent 1</option>
+                                    <option value="Agent 2">Agent 2</option>
+                                </select>
+                                <button onclick="generateReportByAgent()" class="btn btn-primary">Generate Report by Agent</button>
+                                <button onclick="clearAgentFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Filter by Owner -->
+                        <div class="settings-section">
+                            <h4>Filter by Owner</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>Owner Name:</label>
+                                <select id="reportOwner" class="form-control" style="width: 200px;">
+                                    <option value="">Select Owner</option>
+                                </select>
+                                <button onclick="generateReportByOwner()" class="btn btn-primary">Generate Report by Owner</button>
+                                <button onclick="clearOwnerFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Expiring Agreements -->
+                        <div class="settings-section">
+                            <h4>Expiring Agreements</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>From:</label>
+                                <input type="date" id="expiryFromDate" class="form-control" style="width: 150px;">
+                                <label>To:</label>
+                                <input type="date" id="expiryToDate" class="form-control" style="width: 150px;">
+                                <button onclick="generateExpiringReport()" class="btn btn-primary">Generate Expiring Agreements Report</button>
+                                <button onclick="clearExpiryFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Filter by Pending Amount -->
+                        <div class="settings-section">
+                            <h4>Filter by Pending Amount</h4>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <label>Pending Amount:</label>
+                                <select id="pendingAmountFilter" class="form-control" style="width: 200px;">
+                                    <option value="">Select Condition</option>
+                                    <option value="greater">Greater than zero</option>
+                                    <option value="less">Less than zero</option>
+                                </select>
+                                <button onclick="generatePendingReport()" class="btn btn-primary">Generate Pending Report</button>
+                                <button onclick="clearPendingFilter()" class="btn btn-info">Clear</button>
+                            </div>
+                        </div>
+
+                        <!-- Report Results Table -->
+                        <div style="overflow-x: auto; margin-top: 2rem;">
+                            <table class="data-table" id="reportTable" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>Name of Owner</th>
+                                        <th>Token Number</th>
+                                        <th>Location</th>
+                                        <th>Payment Due</th>
+                                        <th>Agent Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Export Report Button -->
+                        <div class="button-group">
+                            <button onclick="exportReport()" class="btn btn-success">Export Report to Excel</button>
+                        </div>
+                    </div>
+
+                    <!-- Profit Tab -->
+                    <div id="profit" class="tab-panel">
+                        <h2>Profit Management</h2>
+
+                        <!-- Profit Summary -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalRevenue">₹0.00</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalExpenses">₹0.00</div>
+                                <div class="stat-label">Total Expenses</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="totalProfit">₹0.00</div>
+                                <div class="stat-label">Total Profit</div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Profit from Agreements -->
+                        <div class="button-group">
+                            <button onclick="generateProfitFromAgreements()" class="btn btn-success">Generate Profit Records from Agreements</button>
+                        </div>
+
+                        <!-- Profit Records Table -->
+                        <div style="overflow-x: auto; margin-top: 1rem;">
+                            <table class="data-table" id="profitTable">
+                                <thead>
+                                    <tr>
+                                        <th>Token Number</th>
+                                        <th>Owner Name</th>
+                                        <th>Total Payment (Revenue)</th>
+                                        <th>Estimated Expenses</th>
+                                        <th>Net Profit</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profitTableBody">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div id="profit" class="tab-panel">
@@ -907,6 +1029,30 @@
             }
         }
 
+
+		async function populateAgentDropdown() {
+			try {
+				const agents = await apiCall('/agents');
+				const select = document.getElementById('reportAgent');
+				select.innerHTML = '<option value="">Select Agent</option>';
+				agents.forEach(agent => {
+					select.add(new Option(agent, agent));
+				});
+			} catch(error) {
+				console.error('Failed to populate agents dropdown:', error);
+			}
+		}
+
+		function populateOwnerDropdown() {
+			const select = document.getElementById('reportOwner');
+			select.innerHTML = '<option value="">Select Owner</option>';
+			const uniqueOwners = [...new Set(agreements.map(a => a.owner_name).filter(Boolean))];
+			uniqueOwners.sort().forEach(owner => {
+				const option = new Option(owner, owner);
+				select.add(option);
+			});
+		}
+		
         function logout(confirmFirst = true) {
             const performLogout = () => {
                 currentUser = null;
@@ -928,14 +1074,17 @@
         }
 
         // Data loading and display
-        async function loadInitialData() {
-            try {
-                await loadAgreements();
-                await updateSystemInfo();
-            } catch(error) {
-                console.error("Error during initial data load:", error);
-            }
-        }
+      
+		async function loadInitialData() {
+			try {
+				await loadAgreements();
+				await updateSystemInfo();
+				await updateProfitSummary();
+				await populateAgentDropdown(); // <-- ADD THIS LINE
+			} catch(error) {
+				console.error("Error during initial data load:", error);
+			}
+		}
 
         async function loadAgreements() {
             try {
@@ -946,6 +1095,141 @@
                 showNotification('Failed to load agreements: ' + error.message, 'error');
             }
         }
+		
+		// --- Reports & Profit Functions ---
+
+		async function generateReport(filters = {}) {
+			try {
+				const queryParams = new URLSearchParams(filters).toString();
+				const reportData = await apiCall(`/reports?${queryParams}`);
+				displayReport(reportData);
+			} catch (error) {
+				showNotification('Error generating report: ' + error.message, 'error');
+			}
+		}
+
+		function displayReport(data) {
+			const resultsContainer = document.getElementById('reportTable').parentElement.parentElement;
+			const tbody = document.getElementById('reportTableBody');
+			tbody.innerHTML = '';
+
+			if (!data || data.length === 0) {
+				resultsContainer.style.display = 'block';
+				tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No agreements found for this filter.</td></tr>`;
+				return;
+			}
+
+			resultsContainer.style.display = 'block';
+			data.forEach(agreement => {
+				const row = tbody.insertRow();
+				row.innerHTML = `
+					<td>${escapeHtml(agreement.owner_name)}</td>
+					<td>${escapeHtml(agreement.token_number)}</td>
+					<td>${escapeHtml(agreement.location)}</td>
+					<td>₹${Number(agreement.payment_due || 0).toFixed(2)}</td>
+					<td>${escapeHtml(agreement.agent_name)}</td>
+				`;
+			});
+		}
+
+		async function generateReportByAgent() {
+			const agent = document.getElementById('reportAgent').value;
+			if (!agent) return showNotification('Please select an agent.', 'warning');
+			await generateReport({ agentName: agent });
+		}
+
+		async function generateReportByOwner() {
+			const owner = document.getElementById('reportOwner').value;
+			if (!owner) return showNotification('Please select an owner.', 'warning');
+			await generateReport({ ownerName: owner });
+		}
+
+		async function generateExpiringReport() {
+			const fromDate = document.getElementById('expiryFromDate').value;
+			const toDate = document.getElementById('expiryToDate').value;
+			if (!fromDate || !toDate) return showNotification('Please select both a "from" and "to" date.', 'warning');
+			await generateReport({ expiryFromDate: fromDate, expiryToDate: toDate });
+		}
+
+		async function generatePendingReport() {
+			const pendingFilter = document.getElementById('pendingAmountFilter').value;
+			if (!pendingFilter) return showNotification('Please select a pending amount condition.', 'warning');
+			await generateReport({ pendingAmount: pendingFilter });
+		}
+
+		function clearAgentFilter() {
+			document.getElementById('reportAgent').value = '';
+			document.getElementById('reportTable').style.display = 'none';
+		}
+		function clearOwnerFilter() {
+			document.getElementById('reportOwner').value = '';
+			document.getElementById('reportTable').style.display = 'none';
+		}
+		function clearExpiryFilter() {
+			document.getElementById('expiryFromDate').value = '';
+			document.getElementById('expiryToDate').value = '';
+			document.getElementById('reportTable').style.display = 'none';
+		}
+		function clearPendingFilter() {
+			document.getElementById('pendingAmountFilter').value = '';
+			document.getElementById('reportTable').style.display = 'none';
+		}
+
+		function exportReport() {
+			// This requires a library to create Excel files, or we can create a CSV.
+			showNotification('Export functionality will be implemented soon.', 'info');
+		}
+
+		async function generateProfitFromAgreements() {
+			try {
+				const profitData = await apiCall('/reports/profit');
+				displayProfitData(profitData);
+				updateProfitSummary(profitData); // Update summary cards with the new data
+			} catch (error) {
+				showNotification('Error generating profit report: ' + error.message, 'error');
+			}
+		}
+
+		function displayProfitData(data) {
+			const tbody = document.getElementById('profitTableBody');
+			tbody.innerHTML = '';
+			if (!data || data.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No profit data found.</td></tr>`;
+				return;
+			}
+			data.forEach(item => {
+				const row = tbody.insertRow();
+				row.innerHTML = `
+					<td>${escapeHtml(item.token_number)}</td>
+					<td>${escapeHtml(item.owner_name)}</td>
+					<td>₹${Number(item.revenue || 0).toFixed(2)}</td>
+					<td>₹${Number(item.estimated_expenses || 0).toFixed(2)}</td>
+					<td>₹${Number(item.profit || 0).toFixed(2)}</td>
+					<td>${escapeHtml(item.agreement_status)}</td>
+				`;
+			});
+		}
+
+		// This function needs to be updated to also call displayProfitData
+		async function updateProfitSummary(data = null) {
+			try {
+				const profitData = data || await apiCall('/reports/profit');
+				
+				const totalRevenue = profitData.reduce((sum, item) => sum + Number(item.revenue || 0), 0);
+				const totalExpenses = profitData.reduce((sum, item) => sum + Number(item.estimated_expenses || 0), 0);
+				const totalProfit = totalRevenue - totalExpenses;
+				
+				document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+				document.getElementById('totalExpenses').textContent = `₹${totalExpenses.toFixed(2)}`;
+				document.getElementById('totalProfit').textContent = `₹${totalProfit.toFixed(2)}`;
+				
+				if (data) { // If we passed data, it means we should display it in the table
+					 displayProfitData(data);
+				}
+			} catch (error) {
+				console.error('Error updating profit summary:', error);
+			}
+		}		
 
         function displayAgreements(data) {
             const tbody = document.getElementById('agreementsTableBody');
