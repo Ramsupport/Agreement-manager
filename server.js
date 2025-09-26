@@ -253,6 +253,7 @@ app.get('/api/agreements', authenticateToken, async (req, res) => {
 
 app.post('/api/agreements', authenticateToken, async (req, res) => {
   const data = req.body;
+  console.log('Received data:', data); // Add this for debugging
   try {
     const params = [
       data.ownerName,
@@ -279,6 +280,8 @@ app.post('/api/agreements', authenticateToken, async (req, res) => {
       data.biometricDate || null,
       req.user.username
     ];
+
+    console.log('Params count:', params.length); // Add this for debugging
 
     const result = await pool.query(`
       INSERT INTO agreements (
