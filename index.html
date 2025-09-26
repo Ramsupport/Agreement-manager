@@ -520,13 +520,13 @@
             <div class="tab-container">
                 <!-- Tab Navigation -->
                 <div class="tab-nav">
-                    <button class="tab-button active" onclick="showTab('agreements')">Agreements</button>
-                    <button class="tab-button" onclick="showTab('reports')">Reports</button>
-                    <button class="tab-button" onclick="showTab('profit')">Profit</button>
-                    <button class="tab-button" onclick="showTab('backup')">Backup</button>
-                    <button class="tab-button" onclick="showTab('settings')" id="settingsTab">Settings</button>
-                    <button class="tab-button" onclick="showTab('about')">About</button>
-                </div>
+					<button class="tab-button active" onclick="showTab('agreements', event)">Agreements</button>
+					<button class="tab-button" onclick="showTab('reports', event)">Reports</button>
+					<button class="tab-button" onclick="showTab('profit', event)">Profit</button>
+					<button class="tab-button" onclick="showTab('backup', event)">Backup</button>
+					<button class="tab-button" onclick="showTab('settings', event)" id="settingsTab">Settings</button>
+					<button class="tab-button" onclick="showTab('about', event)">About</button>
+				</div>
 
                 <!-- Tab Content -->
                 <div class="tab-content">
@@ -1500,7 +1500,7 @@
         }
 
         // Tab management
-        function showTab(tabName) {
+        function showTab(tabName, event) {
             // Check permissions
             if (tabName === 'settings' && (!currentUser || currentUser.role !== 'admin')) {
                 showNotification('Access denied. Admin privileges required.', 'error');
