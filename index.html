@@ -1284,6 +1284,7 @@
 
         async function addAgreement() {
             const agreementData = getAgreementDataFromForm();
+			console.log('Sending agreement data:', agreementData);
             if (!agreementData.ownerName || !agreementData.location || !agreementData.tokenNumber) {
                 showNotification('Owner Name, Location, and Token Number are required.', 'warning');
                 return;
