@@ -489,8 +489,12 @@
                 <input type="password" id="loginPassword" class="form-control" placeholder="Enter password">
             </div>
             <button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-                Login
-            </button>
+				Login
+			</button>
+
+			<button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="login()">
+				Login
+			</button>
             <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
                 <strong>Demo Credentials:</strong><br>
                 Admin: admin / admin123<br>
@@ -1562,9 +1566,7 @@
 			window.addEventListener('offline', updateConnectionStatus);
 			updateConnectionStatus();
 
-			// Check authentication
-			checkAuth();
-			
+			// Check authentication		
 			console.log('Application initialization complete');
 		
 		
@@ -1572,8 +1574,6 @@
             if (confirm('Are you sure you want to logout?')) {
                 currentUser = null;
                 authToken = null;
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('currentUser');
                 document.getElementById('loginContainer').style.display = 'flex';
                 document.getElementById('mainApp').style.display = 'none';
                 document.getElementById('loginUsername').value = '';
@@ -1582,49 +1582,7 @@
             }
         }
 
-        // Check authentication on page load
-        function checkAuth() {
-            const token = localStorage.getItem('authToken');
-            const savedUser = localStorage.getItem('currentUser');
-            
-            if (token && savedUser) {
-                try {
-                    if (token.trim() === '' || token === 'undefined' || token === 'null') {
-                        throw new Error('Invalid token');
-                    }
-                    
-                    authToken = token;
-                    currentUser = JSON.parse(savedUser);
-                    
-                    if (!currentUser || !currentUser.username || !currentUser.role) {
-                        throw new Error('Invalid user data');
-                    }
-                    
-                    document.getElementById('loginContainer').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'block';
-                    
-                    document.getElementById('currentUser').textContent = currentUser.username;
-                    document.getElementById('userRole').textContent = currentUser.role;
-                    document.getElementById('userRole').className = `role-badge ${currentUser.role}`;
-                    
-                    if (currentUser.role !== 'admin') {
-                        const settingsTab = document.getElementById('settingsTab');
-                        if (settingsTab) settingsTab.style.display = 'none';
-                    }
-                    
-                    loadAgreements();
-                    loadUsers();
-                    updateSystemInfo();
-                } catch (error) {
-                    console.error('Auto-login failed:', error);
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('currentUser');
-                    authToken = null;
-                    currentUser = null;
-                }
-            }
-        }
-
+       
         // Load agreements function
         async function loadAgreements() {
             try {
@@ -1988,42 +1946,10 @@
 				showNotification(error.message, 'error');
 			}
 		}
-		
-		// Initialize the application
-		document.addEventListener('DOMContentLoaded', function() {
-			const loginBtn = document.getElementById('loginBtn'); // ✅ match the actual ID
-			if (loginBtn) {
-				loginBtn.addEventListener('click', async function() {
-					const username = document.getElementById('loginUsername').value;
-					const password = document.getElementById('loginPassword').value;
-
-					if (!username || !password) {
-						showNotification('Please enter username and password', 'error');
-						return;
-					}
-
-					try {
-						const response = await apiCall('/auth/login', {
-							method: 'POST',
-							body: JSON.stringify({ username, password }),
-							headers: { 'Content-Type': 'application/json' }
-						});
-
-						localStorage.setItem('authToken', response.user.token);
-						localStorage.setItem('currentUser', JSON.stringify(response.user));
-						document.getElementById('loginContainer').style.display = 'none';
-						document.getElementById('mainApp').style.display = 'block';
-						showNotification('Login successful', 'success');
-						loadAgreements();
-					} catch (err) {
-						showNotification(err.message || 'Login failed', 'error');
-					}
-				});
-			}
-		});
-	</script>
-</body>
-</html> 		
+		</script>
+		</body>
+		</html>
+	
            
      
 	
