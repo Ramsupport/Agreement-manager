@@ -5,7 +5,7 @@ const { Pool } = require('pg');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const cron = require('node-cron'); // This is the new line you added, now in the correct spot.
+const cron = require('node-cron');
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -145,18 +145,6 @@ async function initDb() {
     throw err;
   }
 }
-
-// Add this endpoint before the catch-all handler
-app.delete('/api/agreements/clear-all', authenticateToken, checkAdmin, async (req, res) => {
-    try {
-        await pool.query('DELETE FROM agreements;');
-        await pool.query('DELETE FROM users WHERE username != $1;', ['admin']);
-        res.json({ message: 'All data cleared successfully' });
-    } catch (err) {
-        console.error('Clear all data error:', err);
-        res.status(500).json({ error: 'Failed to clear data' });
-    }
-});
 
 // --- Middleware ---
 const authenticateToken = (req, res, next) => {
@@ -378,6 +366,18 @@ app.delete('/api/agreements/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Clear all data endpoint
+app.delete('/api/agreements/clear-all', authenticateToken, checkAdmin, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM agreements;');
+        await pool.query('DELETE FROM users WHERE username != $1;', ['admin']);
+        res.json({ message: 'All data cleared successfully' });
+    } catch (err) {
+        console.error('Clear all data error:', err);
+        res.status(500).json({ error: 'Failed to clear data' });
+    }
+});
+
 // Users management
 app.get('/api/users', authenticateToken, checkAdmin, async (req, res) => {
   try {
@@ -571,27 +571,10 @@ app.get('/api/settings', authenticateToken, async (req, res) => {
   }
 });
 
-// ... your last API route, for example:
-app.get('/api/settings', authenticateToken, async (req, res) => {
-  // ... route logic ...
-});
-
 // Schedule a task to run at 9:00 AM every day.
 cron.schedule('0 9 * * *', () => {
   console.log('Running daily check for expiring agreements...');
   // The logic to find and email users will go here.
-});
-
-
-// Catch-all handler for SPA (if you have one)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Initialize database and start server
-initDb().then(() => {
-  const PORT = process.env.PORT || 8000;
-  // ... app.listen ...
 });
 
 // Catch-all handler for SPA
