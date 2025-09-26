@@ -1,19 +1,21 @@
-// server.js - Updated for frontend compatibility
+// server.js
 const express = require('express');
 const path = require('path');
 const { Pool } = require('pg');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-
+const cron = require('node-cron');
 const app = express();
 app.use(express.json());
 app.use(cors());
 
 // --- Database Setup ---
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionString: "postgresql://postgres:VYhoucqJxOtjGjbghqKImSjiRLLAkUNi@tramway.proxy.rlwy.net:37212/railway",
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
@@ -94,7 +96,7 @@ async function initDb() {
 
     // Seed default data
     const usersRes = await pool.query(`SELECT COUNT(*) FROM users;`);
-    if (parseInt(usersRes.rows[0].count) === 0) {
+    if (parseInt(usersRes.rows[0].count) <= 1) {
       const hashedPassword = await argon2.hash('admin123');
       await pool.query(
         `INSERT INTO users (username, password, full_name, role) VALUES ($1, $2, $3, $4);`, 
@@ -145,18 +147,6 @@ async function initDb() {
     throw err;
   }
 }
-
-// Add this endpoint before the catch-all handler
-app.delete('/api/agreements/clear-all', authenticateToken, checkAdmin, async (req, res) => {
-    try {
-        await pool.query('DELETE FROM agreements;');
-        await pool.query('DELETE FROM users WHERE username != $1;', ['admin']);
-        res.json({ message: 'All data cleared successfully' });
-    } catch (err) {
-        console.error('Clear all data error:', err);
-        res.status(500).json({ error: 'Failed to clear data' });
-    }
-});
 
 // --- Middleware ---
 const authenticateToken = (req, res, next) => {
@@ -378,8 +368,20 @@ app.delete('/api/agreements/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Clear all data endpoint
+app.delete('/api/agreements/clear-all', authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM agreements;');
+        await pool.query('DELETE FROM users WHERE username != $1;', ['admin']);
+        res.json({ message: 'All data cleared successfully' });
+    } catch (err) {
+        console.error('Clear all data error:', err);
+        res.status(500).json({ error: 'Failed to clear data' });
+    }
+});
+
 // Users management
-app.get('/api/users', authenticateToken, checkAdmin, async (req, res) => {
+app.get('/api/users', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, username, full_name, role, status, created_at, last_login FROM users ORDER BY username;');
     res.json(result.rows);
@@ -388,7 +390,7 @@ app.get('/api/users', authenticateToken, checkAdmin, async (req, res) => {
   }
 });
 
-app.post('/api/users', authenticateToken, checkAdmin, async (req, res) => {
+app.post('/api/users', authenticateToken, async (req, res) => {
   const { username, password, role, fullName } = req.body;
   try {
     const hashedPassword = await argon2.hash(password);
@@ -404,7 +406,7 @@ app.post('/api/users', authenticateToken, checkAdmin, async (req, res) => {
   }
 });
 
-app.delete('/api/users/:id', authenticateToken, checkAdmin, async (req, res) => {
+app.delete('/api/users/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   if (parseInt(id, 10) === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account.' });
   try {
@@ -453,7 +455,7 @@ app.get('/api/backup/export', authenticateToken, async (req, res) => {
 });
 
 // Import backup
-app.post('/api/backup/import', authenticateToken, checkAdmin, async (req, res) => {
+app.post('/api/backup/import', authenticateToken, async (req, res) => {
   const { agreements, users } = req.body;
   try {
     // Clear existing data
@@ -571,6 +573,12 @@ app.get('/api/settings', authenticateToken, async (req, res) => {
   }
 });
 
+// Schedule a task to run at 9:00 AM every day.
+cron.schedule('0 9 * * *', () => {
+  console.log('Running daily check for expiring agreements...');
+  // The logic to find and email users will go here.
+});
+
 // Catch-all handler for SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -578,7 +586,7 @@ app.get('*', (req, res) => {
 
 // Initialize database and start server
 initDb().then(() => {
-  const PORT = process.env.PORT || 8000;
+  const PORT = process.env.PORT || 8001;
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check available at: http://localhost:${PORT}/api/health`);
