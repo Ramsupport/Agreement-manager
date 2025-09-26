@@ -1,18 +1,8 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install"
 
 [deploy]
 startCommand = "npm start"
-healthcheckPath = "/api/health"
-healthcheckTimeout = 30
+healthcheckPath = "/health"
+healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
-
-[[services]]
-name = "web"
-http.port = 8000  # Changed from 3000 to match server.js
-
-[variables]
-NODE_ENV = "production"
-DATABASE_URL = "postgresql://username:password@host:port/database"
-JWT_SECRET = "your-super-secret-jwt-key-here"
